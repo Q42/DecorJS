@@ -1,0 +1,72 @@
+html,body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	cursor: default;
+	-webkit-backface-visibility: hidden;
+}
+scene {
+	display: block;
+	position: relative;
+	perspective-origin: 50% 50%;
+	backface-visibility: hidden;
+	perspective: 200px;
+	-webkit-perspective-origin: 50% 50%;
+	-webkit-backface-visibility: hidden;
+	-webkit-perspective: 200px;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+scene>.canvas {
+	position: relative;
+	height: 1px;
+	width: 1px;
+}
+dud,.static {
+	position: absolute;
+	bottom: 0;
+}
+scene thing, scene dud {
+	display: block;
+	position: absolute;
+}
+scene>thing, scene>dud, scene>img {
+	transition: none .4s ease-in-out;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+scene thing.clickable, scene dud.clickable {
+	pointer-events: all;
+}
+scene.animate:not(.resizing)>thing,
+scene.animate:not(.resizing)>img,
+scene.animate:not(.resizing)>dud {
+	-webkit-transition-property: -webkit-transform;
+	transition-property: transform;
+}
+container {
+	display: block;
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+img.image {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	height: auto;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	pointer-events: none;
+}
+.clickable,
+.clickable:not(.has-area) img.image {
+	pointer-events: all;
+}
+.click {
+	position: absolute;
+}
+.preserve-3d {
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
