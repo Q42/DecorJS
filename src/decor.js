@@ -203,14 +203,21 @@ Decor.Scene = function(name,data){
 		resize();
 		for(var i=0;i<data.objects.length;i++) {
 			var o = data.objects[i];
-			if(o.o&&o.o.noIE&&isIE) continue;
-			var type; for(var x in o){type=x;break;}
-			if(o.o&&o.o.img) imgNum++;
+			o.o=o.o||{};
+			if(o.o.noIE&&isIE) continue;
+			var type,name;
+			for(var x in o){type=x,name=o[x];break;}
+			if(data.prototypes&&/^\$/.test(name)) {
+				name=name.substr(1);
+				o.o=$.extend(o.o,data.prototypes[name]);
+				name=name.toLowerCase();
+			}
+			if(o.o.img) imgNum++;
 			var cons = Decor.Things[type];
 			if(!cons) console.warn('Object type '+type+' not found');
 			else {
-				var t = new cons(me,o[type],getAttr(o.o));
-				t.name = o[type];
+				var t = new cons(me,name,getAttr(o.o));
+				t.name = name;
 				me.objects.push(t);
 			}
 		}
