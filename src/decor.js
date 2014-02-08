@@ -11,9 +11,9 @@
 //DecorJS uses some jQuery functionality.
 //No jQuery? No problem! Here's a weighed down version.
 if(!window.$) {
-	
+
 	$ = function(s){return new _$(s)};
-	
+
 	$.extend = function(){
 		var a = arguments, r = a[0]===true, o = a[r&&1||0];
 		function cp(i,o) { for(var x in i) { var p = i[x], c = p.constructor; o[x] = (r&&(c==Array||c==Object)) ? cp(p,new c) : (r&&(c==Number||c==String)) ? c(p) : p; } return o };
@@ -40,7 +40,7 @@ if(!window.$) {
 		parent      : function()     { var r = [];this.each(function(){r.push(this.parentNode)});return new _$(r); },
 		children    : function(sel)  { sel = sel || '*';var ce = [];this.each(function(){var e = this.querySelectorAll(sel);for(var i=0;i<e.length;i++) if(e[i].parentNode==this) ce.push(e[i]);}); return new _$(ce) },
 		find        : function(sel)  { return new _$(sel,this[0]) },
-		filter      : function(s,iv) { s = _getEls(s); return new _$([].filter.call(this,function(n){ for(var i=0;i<s.length;i++) if(all[i]==n) return !iv; return !!iv })) },
+		filter      : function(s,iv) { s = _getEls(s); return new _$([].filter.call(this,function(n){ for(var i=0;i<s.length;i++) if(s[i]==n) return !iv; return !!iv })) },
 		not         : function(sel)  { return this.filter(sel,true) },
 		eq          : function(i)    { return new _$(this[i]) },
 		has         : function(el)   { for(var i=0;i<this.length;i++) if(this[i]==el) return true },
@@ -108,13 +108,11 @@ Decor = new function(){
 	this.reloadScene = function(){
 		me.resetTo(Decor.currentScene.name)()
 	};
-
 	this.reset = function(){
 		var primary = null;
 		for(var x in Decor.Scenes) { primary=x; break; }
 		me.resetTo(primary)();
 	};
-
 	this.resetTo = function(name){return function(){
 		if(Decor.currentScene) Decor.currentScene.hide(function(){
 			localStorage.removeItem('currentScene');
@@ -123,7 +121,6 @@ Decor = new function(){
 			me.goto(name)();
 		});
 	}};
-
 	this.resetHard = function(){
 		localStorage.removeItem('currentScene');
 		if(Decor.currentScene) Decor.currentScene.hide(function(){
@@ -142,7 +139,7 @@ Decor = new function(){
 		if(cs) cs.hide(load);
 		else load();
 	}};
-	
+
 	this.delete = function(n){
 		if(!_scenes[n]) return;
 		function del(){ delete _scenes[n]; };
@@ -168,7 +165,7 @@ Decor.Scene = function(name,data){
 		, presx = 0
 		, rto = null
 		;
-	
+
 	data.width=data.width||1;
 	data.height=data.height||1;
 
@@ -306,7 +303,7 @@ Decor.Scene = function(name,data){
 			if(cb) cb();
 		},1000);
 	};
-	
+
 	function del(cb){
 		for(var x in me.objects)
 			if(me.objects[x].destroy)
@@ -334,7 +331,7 @@ Decor.Camera = function(scene){
 
 	this.offset = [0,oY,0];
 	this.position = [0,0,0];
-	
+
 	function insideView(cb){
 		var sq = {
 			l: me.position[0]-1,
@@ -354,7 +351,7 @@ Decor.Camera = function(scene){
 			}
 		}
 	};
-	
+
 	this.setPosition = function(c,reset) {
 		var cp = c+'';
 		if(ppos==cp) return;
@@ -366,16 +363,16 @@ Decor.Camera = function(scene){
 			this.place(reset)
 		});
 	};
-	
+
 	this.reset = function(){
 		me.setPosition([0,0,0],true);
 	};
-	
+
 };
 
 Decor.Object3D = function(scene,$el,o) {
 	var me = this;
-	
+
 	this.matrix = new Decor.Mat3D(this,o.pos,o.rot,o.scale);
 	this.notInView = false;
 
@@ -396,7 +393,7 @@ Decor.Object3D = function(scene,$el,o) {
 		me.place();
 		return me;
 	};
-	
+
 	this.setNotInView = function(b){
 		if(me.notInView==b) return;
 		if(me.notInView=b) $el.hide();
@@ -421,8 +418,8 @@ Decor.Object3D = function(scene,$el,o) {
 				, h = me.$.height()
 				;
 
-			if(h>scene.height) pos[2]-=scene.height-h;
-			else if(w>scene.width) pos[2]-=(scene.width-w)/3;
+			if(h>scene.height) pos[2]-=scene.height-h*1.05;
+			else if(w>scene.width) pos[2]-=(scene.width-w)/2;
 
 			pos[0]-=((1-o.width)/2);
 
@@ -530,32 +527,24 @@ Decor.Frame = new function(){
 	var q = []
 		, started = false
 		, raf = null
-		, fc = 0
 		, fi = null
 		;
-	
-	function fps(){console.log('fps:',fc);fc=0;};
 
 	function start(){
 		if(started) return;
 		started = true;
-		//console.info('frames start');
 		raf = requestAnimationFrame(cycle);
-		//fi = setInterval(fps,1000);
 	};
 
 	function stop(){
 		if(!started) return;
 		started = false;
-		//console.info('frame stop');
 		cancelAnimationFrame(raf);
-		//clearInterval(fi);
 	};
 
 	function cycle(t){
 		if(!q.length) return stop();
 		for(var i=0;i<q.length;i++) q.shift()(t);
-		//fc++;
 		raf = requestAnimationFrame(cycle);
 	};
 
@@ -704,7 +693,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 
 	me.$ = $(img);
 	me.$cnt = $cnt;
-	
+
 	$cnt[0].thing = this;
 
 	var $cl = $();
@@ -761,4 +750,3 @@ Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
 		}));
 	}
 };
-
