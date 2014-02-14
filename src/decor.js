@@ -594,7 +594,7 @@ Decor.Audio = new function(){
 	};
 
 	function getSrc(src){
-		if((isIE) && /\.ogg$/.test(src))
+		if((isIE || isIOS) && /\.ogg$/.test(src))
 			src = src.replace(/\.ogg/,'.mp3');
 		return src;
 	};
