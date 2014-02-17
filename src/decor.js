@@ -16,7 +16,7 @@ if(!window.$) {
 
 	$.extend = function(){
 		var a = arguments, r = a[0]===true, o = a[r&&1||0];
-		function cp(i,o) { for(var x in i) { var p = i[x], c = p.constructor; o[x] = (r&&(c==Array||c==Object)) ? cp(p,new c) : (r&&(c==Number||c==String)) ? c(p) : p; } return o };
+		function cp(i,o) { for(var x in i) { var p = i[x], c = p&&p.constructor; o[x] = (r&&c&&(c==Array||c==Object)) ? cp(p,new c) : (r&&c&&(c==Number||c==String)) ? c(p) : p; } return o };
 		for(var i=(r?2:1);i<a.length;i++) cp(a[i],o);
 		return o;
 	};
@@ -50,7 +50,7 @@ if(!window.$) {
 		on          : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.addEventListener(e[x],f)}); return this },
 		off         : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.removeEventListener(e[x],f)}); return this },
 		click       : function(f)    { if(f instanceof Function) this.on('click',f); else this.trigger('click'); return this },
-		text        : function(t)    { if(t===undefined) return this[0]&&this[0].innerText; this.each(function(){this.innerText=t}); return this },
+		text        : function(t)    { if(t===undefined) return this[0]&&this[0].textContent; this.each(function(){this.textContent=t}); return this },
 		html        : function(h)    { if(t===undefined) return this[0]&&this[0].innerHTML; this.each(function(){this.innerHTML=h}); return this },
 		hasClass    : function(cl,h) { h=0;this.each(function(){h+=this.classList.contains(cl)&&1||0});return !!h },
 		addClass    : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) this.classList.add(cl[i])});return this },
@@ -60,7 +60,7 @@ if(!window.$) {
 		getcss      : function(p)    { return this[0]&&this[0].style.getPropertyValue(p); },
 		css         : function(a,b)  { if(typeof a == 'string') if(b===undefined) return this.getcss(a); else this.setcss(a,b);else for(var x in a) this.setcss(x,a[x]); return this },
 		hide        : function()     { this.setcss('display','none'); return this },
-		show        : function()     { this.setcss('display',null); return this },
+		show        : function()     { this.setcss('display','block'); return this },
 		width       : function()     { return this[0]&&this[0].clientWidth },
 		height      : function()     { return this[0]&&this[0].clientHeight }
 	};
@@ -79,6 +79,14 @@ Decor = new function(){
 	isIOS = /ipad|iphone|ipod/.test(ualc);
 	isAndroid = /android/.test(ualc);
 	isMobile = isIOS || isAndroid;
+
+	var bc = document.firstChild.classList;
+	if(isWebkit) bc.add('webkit');
+	if(isFirefox) bc.add('firefox');
+	if(isIE) bc.add('ie');
+	if(isIOS) bc.add('ios');
+	if(isAndroid) bc.add('android');
+	if(isMobile) bc.add('mobile');
 
 	c3p = isWebkit||isIOS?'-webkit-':'';
 	c3 = {
@@ -147,10 +155,7 @@ Decor = new function(){
 		else del();
 	};
 
-	if(isMobile) {
-		$('html').addClass('mobile'+(isAndroid?' android':''));
-		addEventListener('touchstart',goFullScreen);
-	}
+	if(isMobile) addEventListener('touchstart',goFullScreen);
 };
 
 Decor.Scene = function(name,data){
@@ -162,6 +167,7 @@ Decor.Scene = function(name,data){
 		, shown = false
 		, inited = false
 		, imgNum = 0
+		, oImgNum = 0
 		, presx = 0
 		, rto = null
 		;
@@ -198,6 +204,7 @@ Decor.Scene = function(name,data){
 
 	function init(){
 		if(inited) return;
+		$(document.body).removeClass('done-loading');
 		inited = true;
 		me.$[0].scrollLeft = 0;
 		resize();
@@ -214,7 +221,7 @@ Decor.Scene = function(name,data){
 			}
 			if(o.o.img) imgNum++;
 			var cons = Decor.Things[type];
-			if(!cons) console.warn('Object type '+type+' not found');
+			if(!cons) console.error('Object type '+type+' not found');
 			else {
 				var t = new cons(me,name,getAttr(o.o));
 				t.name = name;
@@ -223,14 +230,13 @@ Decor.Scene = function(name,data){
 		}
 		if(data.oninit) data.oninit(me);
 		if(!imgNum) loaded();
+		oImgNum = imgNum;
 	};
 
 	function loaded(){
-		me.$.addClass('loaded animate');
+		if(data.scrollLeft) me.camera.setPosition([(data.scrollLeft||0)*10,0,0]);
+		me.$.addClass('loaded');
 		me.show();
-		if(data.scrollLeft) setTimeout(function(){
-			me.$[0].scrollLeft = Math.round(10*me.width*data.scrollLeft);
-		});
 	};
 
 	function resize(){
@@ -260,16 +266,20 @@ Decor.Scene = function(name,data){
 
 	function postResize(){
 		me.$.removeClass('resizing')
-		if(presx) me.$[0].scrollLeft = Math.round(presx*me.$[0].scrollWidth);
+		if(presx) me.$[0].scrollLeft = me.camera.position[2]?0:Math.round(presx*me.$[0].scrollWidth);
 		presx = 0;
 	};
 
 	this.imageLoaded = function(){
 		if(!--imgNum) loaded();
+		if(oImgNum) {
+			var p = Math.round((oImgNum-imgNum)/oImgNum*5)*20;
+			$(document.body).addClass('loaded-'+p);
+		}
 	};
 
 	this.addLoadImage = function(){
-		imgNum++;
+		imgNum++; oImgNum++;
 	};
 
 	this.getThing = function(n){
@@ -290,13 +300,16 @@ Decor.Scene = function(name,data){
 		addEventListener('resize',resize);
 		if(data.audio) Decor.Audio.play(data.audio.src,data.audio);
 		me.$.trigger('scene-show',name);
+		onbeforeunload = function(){me.delete(null,0)};
 		setTimeout(function(){
 			me.$.addClass('shown');
-			$(document.body).addClass('scene-shown');
+			$(document.body)
+				.addClass('done-loading scene-shown')
+				.removeClass('loaded-0 loaded-20 loaded-40 loaded-50 loaded-60 loaded-80');
 		});
 	};
 
-	this.hide = function(cb){
+	this.hide = function(cb,dur){
 		if(!shown) return cb&&cb();
 		shown = false;
 		me.active = false;
@@ -308,7 +321,7 @@ Decor.Scene = function(name,data){
 		setTimeout(function(){
 			me.$.removeClass('placed');
 			if(cb) cb();
-		},1000);
+		},isNaN(dur)?1000:dur);
 	};
 
 	function del(cb){
@@ -321,9 +334,9 @@ Decor.Scene = function(name,data){
 		if(cb)cb();
 	};
 
-	this.delete = function(cb){
+	this.delete = function(cb,dur){
 		if(!shown) del(cb);
-		else me.hide(function(){del(cb)});
+		else me.hide(function(){del(cb)},dur);
 	};
 
 };
@@ -363,9 +376,9 @@ Decor.Camera = function(scene){
 		var cp = c+'';
 		if(ppos==cp) return;
 		ppos=cp;
-		me.position[0] = Math.max(0,c[0]);
+		me.position[0] = Math.min(scene.data.width,Math.max(0,c[0]));
 		me.position[1] = Math.min(oY,Math.max(0,c[1]));
-		me.position[2] = -c[2];
+		me.position[2] = c[2];
 		insideView(function(){
 			this.place(reset)
 		});
@@ -374,11 +387,15 @@ Decor.Camera = function(scene){
 	this.reset = function(){
 		me.setPosition([0,0,0],true);
 	};
+	this.resetZ = function(){
+		me.setPosition([me.position[0],me.position[1],0],true);
+	};
 
 };
 
 Decor.Object3D = function(scene,$el,o) {
-	var me = this;
+	var me = this
+		, to = null;
 
 	this.matrix = new Decor.Mat3D(this,o.pos,o.rot,o.scale);
 	this.notInView = false;
@@ -415,9 +432,11 @@ Decor.Object3D = function(scene,$el,o) {
 		if(scene.dimmed && $el.hasClass('open'))
 			return $('.nav.back').click();
 
-		var evt = 'zoomout';
+		clearTimeout(to);
+		scene.$.addClass('animate');
+		var evt = 'zoom-out';
 		if($el.toggleClass('open').hasClass('open')) {
-			evt = 'zoomin';
+			evt = 'zoom-in';
 			scene.$.find('.open').not($el).removeClass('open');
 
 			var pos = me.matrix.getPosition()
@@ -429,12 +448,16 @@ Decor.Object3D = function(scene,$el,o) {
 			else if(w>scene.width) pos[2]-=(scene.width-w)/2;
 
 			pos[0]-=((1-o.width)/2);
+			pos[2]*=-1;
 
 			scene.camera.setPosition(pos);
 		}
-		else scene.camera.reset();
+		else scene.camera.resetZ();
 
 		scene.$.trigger(evt,me.name);
+		to = setTimeout(function(){
+			scene.$.removeClass('animate');
+		},500);
 	};
 
 	this.place();
@@ -445,7 +468,8 @@ Decor.Object3D = function(scene,$el,o) {
 Decor.Mat3D = function(thing,xyz,rot,scale) {
 	xyz = xyz||[0,0,0];
 	rot = rot||[0,0,0];
-	scale = scale?scale.length?scale:[scale||1,scale||1]:[1,1];
+	scale = scale?scale.length?scale:[scale||1,scale||1,1]:[1,1,1];
+	if(scale.length==2) scale.push(1);
 
 	var me = this
 		, scene = thing.scene
@@ -494,7 +518,8 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		if(rot[0]) att.push('rotateX('+rot[0]+'deg)');
 		if(rot[1]) att.push('rotateY('+rot[1]+'deg)');
 		if(rot[2]) att.push('rotateZ('+rot[2]+'deg)');
-		if(String(scale)!='1,1') att.push('scale3d('+scale.join(',')+',1)');
+		if(scale[0]!=1||scale[1]!=1||scale[2]!=1)
+			att.push('scale3d('+scale.join(',')+')');
 
 		return att.join(' ');
 	};
@@ -627,7 +652,7 @@ Decor.Things.Thing = function(scene,name,o){
 	this.attr = o;
 	this.scene = scene;
 
-	var $cnt = $(o.static?'<thing>':'<dud>');
+	var $cnt = $(o.static?'<thing>':'<dud class="dud">');
 	$cnt[0].thing = this;
 	this.$cnt = $cnt;
 	if(name) $cnt.addClass(name+(o.static?' static':'')+(o.class?' '+o.class:''));
@@ -637,7 +662,7 @@ Decor.Things.Thing = function(scene,name,o){
 
 	if(o.innerText) this.$.text(o.innerText);
 
-	this.setDims = function(){
+	function setDims(){
 		var rat = o.isDepth?scene.height/1080:1;
 
 		me.$.css({
@@ -649,16 +674,13 @@ Decor.Things.Thing = function(scene,name,o){
 		me.rheight = o.px?o.px[1]/scene.height:o.dims[1];
 	};
 
-	scene.$.on('scene-resize',this.setDims);
+	scene.$.on('scene-resize',setDims);
 
-	this.setDims();
+	setDims();
 
-	this.show = function(){
-		$cnt.appendTo(scene.$);
-	};
-	this.hide = function(){
-		$cnt.remove();
-	};
+	this.show = function(){$cnt.appendTo(scene.$)};
+	this.hide = function(){$cnt.remove()};
+	this.destroy = function(){$cnt.remove()};
 
 	Decor.Object3D.call(this,scene,$cnt,o);
 
@@ -670,9 +692,25 @@ Decor.Things.Static = function(scene,name,o){ // :: Thing
 	Decor.Things.Thing.call(this,scene,name,o);
 };
 
-Decor.Things.Image = function(scene,name,a){ // :: ImageContain
-	a.static = true;
-	Decor.Things.ImageContain.call(this,scene,name,a);
+Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
+	var me = this;
+	Decor.Things.Static.call(this,scene,name,o);
+	$(o.selector).appendTo(this.$cnt);
+	if(o.watch) {
+		me.$cnt.addClass('hidden');
+		scene.$.on('zoom-in zoom-out',function(e){
+			if(e.type=='zoom-in' && e.detail == o.watch)
+				me.$cnt.removeClass('hidden');
+			else me.$cnt.addClass('hidden');
+		});
+	}
+
+	function resize(){
+		var px = Math.max(8,(16/1080)*scene.height);
+		me.$cnt.css('font-size',px+'px');
+	};
+	scene.$.on('scene-show scene-resize',resize);
+
 };
 
 Decor.Things.ImageContain = function(scene,name,a) {
@@ -683,7 +721,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 		, ext = /\..{3}$/.test(a.img)?'':'.png'
 		, src = 'img/'+a.img+ext
 		, w = a.px?a.px[0]:a.dims[0]*100+'%'
-		, $cnt = $('<dud>').css('width',w).appendTo(scene.$)
+		, $cnt = $('<'+(a.tagName||'dud')+' class="dud">').css('width',w).appendTo(scene.$)
 		;
 
 	if(a.class) $cnt.addClass(a.class);
@@ -744,6 +782,27 @@ Decor.Things.ImageContain = function(scene,name,a) {
 		scene.imageLoaded(name);
 	};
 
+	this.destroy = function(){$cnt.remove()};
+
+};
+
+Decor.Things.Image = function(scene,name,a){ // :: ImageContain
+	a.static = true;
+	Decor.Things.ImageContain.call(this,scene,name,a);
+};
+
+Decor.Things.ImageLink = function(scene,name,a){ // :: ImageContain
+	a.tagName = 'a';
+	Decor.Things.ImageContain.call(this,scene,name,a);
+	this.$cnt[0].href = a.href;
+	this.$cnt[0].target = '_blank';
+	if(a.title) this.$cnt[0].title = a.title;
+};
+
+Decor.Things.ImageBG = function(scene,name,o){ // :: Static
+	Decor.Things.Static.call(this,scene,name,o);
+	scene.imageLoaded();
+	this.$cnt.css('background-image','url(img/'+o.img+'.png)');
 };
 
 Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
@@ -754,6 +813,16 @@ Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
 			img: a.img,
 			width: a.width,
 			pos: [a.pos[0]+i*a.width,a.pos[1],a.pos[2]]
+		}));
+	}
+};
+
+Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
+	for(var i=0;i<a.repeat;i++) {
+		scene.objects.push(new Decor.Things.Thing(scene,name,{
+			dims: a.dims,
+			px: a.px,
+			pos: [a.pos[0]+i*a.trans[0],a.pos[1]+i*a.trans[1],a.pos[2]-i*a.trans[2]]
 		}));
 	}
 };
