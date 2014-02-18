@@ -70,6 +70,9 @@ img.image {
 .clickable:not(.has-area) img.image {
 	pointer-events: all;
 }
+.no-events {
+	pointer-events: none !important;
+}
 .click {
 	position: absolute;
 }

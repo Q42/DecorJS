@@ -46,7 +46,7 @@ if(!window.$) {
 		has         : function(el)   { for(var i=0;i<this.length;i++) if(this[i]==el) return true },
 		add         : function(sel)  { sel = _getEls(sel); var me = this, cu = []; for(var i=0;i<this.length;i++) cu.push(this[i]); var ta = cu.concat([].filter.call(sel,function(n){return !me.has(n)})); return ta.length==this.length?this:new _$(ta) },
 		attr        : function(k,v)  { if(v===undefined) return this[0]&&this[0].getAttribute(k); this.each(function(){this[((v===null)?'remove':'set')+'Attribute'](k,v)}); return this },
-		trigger     : function(e,v)  { this.each(function(){this.dispatchEvent(new CustomEvent(e,{detail:v}))}); return this },
+		trigger     : function(e,v)  { this.each(function(){var evt = !isIE?new CustomEvent(e,{detail:v}):document.createEvent('CustomEvent');if(isIE) evt.initCustomEvent(e, false, false, v);this.dispatchEvent(evt)}); return this },
 		on          : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.addEventListener(e[x],f)}); return this },
 		off         : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.removeEventListener(e[x],f)}); return this },
 		click       : function(f)    { if(f instanceof Function) this.on('click',f); else this.trigger('click'); return this },
@@ -108,11 +108,6 @@ Decor = new function(){
 	this.Scenes = {};
 	this.Things = {};
 
-	function goFullScreen(){
-		document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-		removeEventListener('touchstart',goFullScreen);
-	};
-
 	this.reloadScene = function(){
 		me.resetTo(Decor.currentScene.name)()
 	};
@@ -155,7 +150,6 @@ Decor = new function(){
 		else del();
 	};
 
-	if(isMobile) addEventListener('touchstart',goFullScreen);
 };
 
 Decor.Scene = function(name,data){
@@ -825,4 +819,54 @@ Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
 			pos: [a.pos[0]+i*a.trans[0],a.pos[1]+i*a.trans[1],a.pos[2]-i*a.trans[2]]
 		}));
 	}
+};
+
+//Supports different image sizes (append #[.quality] to filename)
+Decor.Things.ImageCQuality = function(scene,name,a){ // :: ImageContain
+	var me = this;
+	a.quality = a.quality||[a.img.match(/\d*$/)[0]];
+	if(!a.default) a.default = 0;
+	if(a.mobile&&isMobile) a.default = a.mobile;
+
+	var imguri = a.img.replace(/\d*$/,'');
+	a.img=imguri+a.quality[a.default];
+
+	var imgs = new Array(a.quality.length)
+		, curr = null;
+
+	Decor.Things.ImageContain.call(this,scene,name,a);
+
+	function clear(){
+		if(curr) me.$cnt[0].removeChild(curr);
+		curr = null;
+	};
+
+	function setImage(img){
+		img=this instanceof Image&&this||img;
+		var nxt = curr||me.$[0].nextSibling;
+		me.$cnt[0].insertBefore(img,nxt);
+		clear();
+		curr = img;
+	};
+
+	this.setQuality = function(i){
+		if(i==a.default||!a.quality[i]) return curr&&clear();
+		if(imgs[i]) return setImage(imgs[i]);
+		imgs[i] = new Image;
+		imgs[i].onload = setImage;
+		imgs[i].className = 'image no-events '+name;
+		imgs[i].src = 'img/'+imguri+a.quality[i]+(/\..{3}$/.test(a.img)?'':'.png');
+	};
+
+	if(!(a.noMobile&&isMobile))
+		scene.$.on('zoom-in',function(e){
+			if(e.detail==name) {
+				var q = a.medium||a.high;
+				if(a.highTreshX&&a.medium)
+					q = scene.width>a.highTreshX?a.high:a.medium;
+				me.setQuality(q);
+			}
+			else clear();
+		}).on('zoom-out',clear);
+
 };
