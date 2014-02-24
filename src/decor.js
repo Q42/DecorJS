@@ -22,6 +22,25 @@ if(!window.$) {
 		return o;
 	};
 
+	$.browser = new function(){
+		var ualc = navigator.userAgent.toLowerCase();
+
+		this.webkit = /applewebkit/.test(ualc);
+		this.firefox = /firefox/.test(ualc);
+		this.ie = /msie/.test(ualc) || /trident/.test(ualc);
+		this.iOS = /ipad|iphone|ipod/.test(ualc);
+		this.android = /android/.test(ualc);
+		this.mobile = this.iOS || this.android;
+		this.unknown = !this.webkit&&!this.firefox&&!this.ie&&!this.iOS&&!this.android;
+
+		var vstr = this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
+			: this.firefox?ualc.match(/firefox\/(\d+)\./)[1]
+			: this.ie?ualc.match(/(msie\s|rv\:)(\d+)\./)[2]
+			: -1;
+
+		this.version = parseFloat(vstr);
+	};
+
 	function _getEls(sel,par){
 		if(sel==window) return [window];
 		if(sel instanceof Element) return [sel];
@@ -71,14 +90,12 @@ if(!window.$) {
 Decor = new function(){
 	var me = this;
 
-	var ualc = navigator.userAgent.toLowerCase();
-
-	isWebkit = /chrome/.test(ualc);
-	isFirefox = /firefox/.test(ualc);
-	isIE = /msie/.test(ualc) || /trident/.test(ualc);
-	isIOS = /ipad|iphone|ipod/.test(ualc);
-	isAndroid = /android/.test(ualc);
-	isMobile = isIOS || isAndroid;
+	isWebkit = $.browser.webkit;
+	isFirefox = $.browser.firefox;
+	isIE = $.browser.ie;
+	isIOS = $.browser.iOS;
+	isAndroid = $.browser.android;
+	isMobile = $.browser.mobile;
 
 	var bc = document.firstChild.classList;
 	if(isWebkit) bc.add('webkit');
@@ -87,6 +104,11 @@ Decor = new function(){
 	if(isIOS) bc.add('ios');
 	if(isAndroid) bc.add('android');
 	if(isMobile) bc.add('mobile');
+
+	this.compatible = (isWebkit && $.browser.version>=530)
+		||(isFirefox && $.browser.version>=21)
+		||(isIE && $.browser.version>=10)
+		||isMobile;
 
 	c3p = isWebkit||isIOS?'-webkit-':'';
 	c3 = {
@@ -737,6 +759,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 
 	var $cl = $();
 	var clickArea = a.clickable&&a.clickable.length;
+	if(isIE&&$.browser.version<11) clickArea = false;
 	var area = a.clickable&&a.clickable.length?a.clickable:[[0,0],[1,1]];
 	if(a.clickable) {
 		$cnt.addClass('clickable');
@@ -752,7 +775,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	}
 
 	function resArea(){
-		var h = img.height*$cnt.width()/img.width;
+		var h = img.offsetHeight*$cnt.width()/img.offsetWidth;
 		var b = Math.round(h*area[0][1]);
 		$cl.css({height:h-b,bottom:b});
 	};

@@ -4,6 +4,8 @@ html,body {
 	overflow: hidden;
 	cursor: default;
 	-webkit-backface-visibility: hidden;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-ms-content-zooming: none;
 }
 content {
 	display: none;
@@ -43,6 +45,7 @@ scene>img {
 }
 scene thing.clickable, scene .dud.clickable, scene a.dud, scene a.dud>img {
 	pointer-events: all;
+	cursor: pointer;
 }
 scene.animate:not(.resizing)>thing,
 scene.animate:not(.resizing)>img,
