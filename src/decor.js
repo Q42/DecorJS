@@ -736,8 +736,6 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	a.dims=[a.width,0];
 
 	var me = this
-		, ext = /\..{3}$/.test(a.img)?'':'.png'
-		, src = 'img/'+a.img+ext
 		, w = a.px?a.px[0]+'px':a.dims[0]*100+'%'
 		, $cnt = $('<'+(a.tagName||'dud')+' class="dud">').css('width',w).appendTo(scene.$)
 		;
@@ -750,7 +748,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	img.thing = me;
 	img.onload = onload;
 	img.onerror = scene.imageLoaded;
-	img.src = src;
+	img.src = a.img;
 
 	me.$ = $(img);
 	me.$cnt = $cnt;
@@ -820,7 +818,7 @@ Decor.Things.ImageLink = function(scene,name,a){ // :: ImageContain
 Decor.Things.ImageBG = function(scene,name,o){ // :: Static
 	Decor.Things.Static.call(this,scene,name,o);
 	scene.imageLoaded();
-	this.$cnt.css('background-image','url(img/'+o.img+'.png)');
+	this.$cnt.css('background-image','url('+o.img+')');
 };
 
 Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
@@ -852,8 +850,11 @@ Decor.Things.ImageCQuality = function(scene,name,a){ // :: ImageContain
 	if(!a.default) a.default = 0;
 	if(a.mobile&&isMobile) a.default = a.mobile;
 
-	var imguri = a.img.replace(/\d*$/,'');
-	a.img=imguri+a.quality[a.default];
+	var imgext = a.img.replace(/^.*(\..{3})$/,'$1')||'.png'
+		, imgbase = a.img.replace(/\d.*$/,'')
+		;
+
+	a.img=imgbase+a.quality[a.default]+imgext;
 
 	var imgs = new Array(a.quality.length)
 		, curr = null;
@@ -879,7 +880,7 @@ Decor.Things.ImageCQuality = function(scene,name,a){ // :: ImageContain
 		imgs[i] = new Image;
 		imgs[i].onload = setImage;
 		imgs[i].className = 'image no-events '+name;
-		imgs[i].src = 'img/'+imguri+a.quality[i]+(/\..{3}$/.test(a.img)?'':'.png');
+		imgs[i].src = imgbase+a.quality[i]+imgext;
 	};
 
 	if(!(a.noMobile&&isMobile))
