@@ -742,8 +742,6 @@ Decor.Things.ImageContain = function(scene,name,a) {
 		, $cnt = $('<'+(a.tagName||'dud')+' class="dud">').css('width',w).appendTo(scene.$)
 		;
 
-	if(a.class) $cnt.addClass(a.class);
-	
 	this.attr = a;
 	this.scene = scene;
 
@@ -794,6 +792,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 			me.$cnt.replaceWith(me.$);
 			$cnt = me.$;
 		}
+		if(a.class) $cnt.addClass(a.class);
 		Decor.Object3D.call(me,scene,$cnt,a);
 		if(a.clickable) (clickArea?$cl:me.$).click(me.focus);
 		if(!a.static) me.$.appendTo(me.$cnt);
