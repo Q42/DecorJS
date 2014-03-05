@@ -594,7 +594,7 @@ Decor.Frame = new function(){
 
 	function cycle(t){
 		if(!q.length) return stop();
-		for(var i=0;i<q.length;i++) q.shift()(t);
+		while(q.length) q.shift()(t);
 		raf = requestAnimationFrame(cycle);
 	};
 
