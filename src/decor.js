@@ -206,7 +206,7 @@ Decor.Scene = function(name,data){
 	this.deleted = false;
 
 	this.$ = $('<scene>').addClass(name)
-		.css({width:res[0],height:res[1]})
+		.css({width:res[0]+'px',height:res[1]+'px'})
 		.appendTo(document.body);
 
 	if(data.scrolling && data.width>1)
@@ -267,16 +267,16 @@ Decor.Scene = function(name,data){
 		if(size[1]>innerHeight) size = [innerHeight * format, innerHeight];
 
 		var css = {
-			'margin-left': me.margin[0]=data.fullWidth?0:Math.round((innerWidth-size[0])/2),
-			'margin-top': me.margin[1]=Math.round((innerHeight-size[1])/2)
+			'margin-left': (me.margin[0]=data.fullWidth?0:Math.round((innerWidth-size[0])/2))+'px',
+			'margin-top': (me.margin[1]=Math.round((innerHeight-size[1])/2))+'px'
 		};
 
 		if(data.fixedSize && data.res)
 			me.$.css(c3.transform,'scale('+(me.scale=size[0]/res[0])+')');
 		else {
 			me.width = Math.round(size[0]);
-			css.width = data.fullWidth?innerWidth:me.width;
-			css.height = me.height = Math.round(size[1]);
+			css.width = (data.fullWidth?innerWidth:me.width)+'px';
+			css.height = (me.height = Math.round(size[1]))+'px';
 		}
 
 		me.$.css(css).trigger('scene-resize');
@@ -684,7 +684,7 @@ Decor.Things.Thing = function(scene,name,o){
 		var rat = o.isDepth?scene.height/1080:1;
 
 		me.$.css({
-			width: me.width=o.px&&o.px[0]||Math.round(o.dims[0]*scene.width),
+			width: (me.width=o.px&&o.px[0]||Math.round(o.dims[0]*scene.width))+'px',
 			height: me.height=o.px&&o.px[1]||(o.dims[1]/rat)*100+'%',
 		});
 
@@ -738,7 +738,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	var me = this
 		, ext = /\..{3}$/.test(a.img)?'':'.png'
 		, src = 'img/'+a.img+ext
-		, w = a.px?a.px[0]:a.dims[0]*100+'%'
+		, w = a.px?a.px[0]+'px':a.dims[0]*100+'%'
 		, $cnt = $('<'+(a.tagName||'dud')+' class="dud">').css('width',w).appendTo(scene.$)
 		;
 
