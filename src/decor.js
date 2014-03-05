@@ -99,7 +99,7 @@ Decor = new function(){
 	isAndroid = $.browser.android;
 	isMobile = $.browser.mobile;
 
-	var bc = document.firstChild.classList;
+	var bc = document.documentElement.classList;
 	if(isWebkit) bc.add('webkit');
 	if(isFirefox) bc.add('firefox');
 	if(isIE) bc.add('ie');
