@@ -27,6 +27,7 @@ if(!window.$) {
 
 		this.webkit = /applewebkit/.test(ualc);
 		this.firefox = /firefox/.test(ualc);
+		this.safari = /safari/.test(ualc) && !/chrome/.test(ualc);
 		this.ie = /msie/.test(ualc) || /trident/.test(ualc);
 		this.iOS = /ipad|iphone|ipod/.test(ualc);
 		this.android = /android/.test(ualc);
@@ -92,6 +93,7 @@ Decor = new function(){
 
 	isWebkit = $.browser.webkit;
 	isFirefox = $.browser.firefox;
+	isSafari = $.browser.safari;
 	isIE = $.browser.ie;
 	isIOS = $.browser.iOS;
 	isAndroid = $.browser.android;
@@ -635,7 +637,7 @@ Decor.Audio = new function(){
 	};
 
 	function getSrc(src){
-		if((isIE || isIOS) && /\.ogg$/.test(src))
+		if((isIE || isIOS || isSafari) && /\.ogg$/.test(src))
 			src = src.replace(/\.ogg/,'.mp3');
 		return src;
 	};
