@@ -12,12 +12,12 @@
 				font-size: 24px;
 			}
 
-			.plane1 { background: #fff; }
-			.plane2 { background: #0fb; }
-			.plane3 { background: #0bf; }
-			.plane4 { background: #f00; }
+			.plane1 { background: #f00; }
+			.plane2 { background: #fff; }
+			.plane3 { background: #fb0; }
+			.plane4 { background: #0fb; }
 			.plane5 { background: #0f0; }
-			.plane6 { background: #fb0; }
+			.plane6 { background: #0bf; }
 			
 		</style>
 	</head>
@@ -50,10 +50,10 @@
 
 			objects: [
 				// Always arrange objects from back to forward (Z-coordinate)
-				{ Thing: 'plane4', o: { pos: [1.0,0,-700] , dims: [.1,.8] } },
-				{ Thing: 'plane1', o: { pos: [0,0,-600]   , dims: [.1,.8] } },
-				{ Thing: 'plane6', o: { pos: [1.8,0,-500] , dims: [.1,.8] } },
-				{ Thing: 'plane2', o: { pos: [0.3,0,-200] , dims: [.1,.8] } },
+				{ Thing: 'plane1', o: { pos: [1.0,0,-700] , dims: [.1,.8] } },
+				{ Thing: 'plane2', o: { pos: [0,0,-600]   , dims: [.1,.8] } },
+				{ Thing: 'plane3', o: { pos: [1.8,0,-500] , dims: [.1,.8] } },
+				{ Thing: 'plane4', o: { pos: [0.3,0,-200] , dims: [.1,.8] } },
 				{ Thing: 'text',  o: { 
 					pos: [0,.75,0], dims: [1,.2],
 					textContent: 'Hello, World! Scroll this way -------->' 
@@ -63,7 +63,7 @@
 					textContent: 'View the page source for how it\'s done' 
 				} },
 				{ Thing: 'plane5', o: { pos: [1.3,0,100]  , dims: [.1,.8] } },
-				{ Thing: 'plane3', o: { pos: [0.75,0,200] , dims: [.1,.8] } },
+				{ Thing: 'plane6', o: { pos: [0.75,0,200] , dims: [.1,.8] } },
 			]
 		};
 
