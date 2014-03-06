@@ -26,8 +26,9 @@ scene {
 scene>.canvas {
 	position: relative;
 	height: 1px;
+	width: 1px;
 }
-.dud,.static {
+.dud,.static,thing {
 	position: absolute;
 	bottom: 0;
 }

@@ -209,8 +209,12 @@ Decor.Scene = function(name,data){
 		.css({width:res[0]+'px',height:res[1]+'px'})
 		.appendTo(document.body);
 
-	if(data.scrolling && data.width>1)
-		$('<div class="canvas">').css('width',data.width*100+'%').appendTo(this.$);
+	if(data.scrolling){
+		if(data.width>1)
+			$('<div class="canvas">').css('width',data.width*100+'%').appendTo(this.$);
+		if(data.height>1)
+			$('<div class="canvas vert">').css('height',data.height*100+'%').appendTo(this.$);
+	}
 
 	function getAttr(o){
 		o=o||{};
@@ -673,19 +677,21 @@ Decor.Things.Thing = function(scene,name,o){
 	var $cnt = $(o.static?'<thing>':'<dud class="dud">');
 	$cnt[0].thing = this;
 	this.$cnt = $cnt;
-	if(name) $cnt.addClass(name+(o.static?' static':'')+(o.class?' '+o.class:''));
 
 	if(o.static) this.$ = $cnt;
 	else this.$ = $('<thing>').appendTo($cnt);
 
-	if(o.innerText) this.$.text(o.innerText);
+	if(o.static) $cnt.addClass('static');
+	this.$.addClass(name+(o.class?' '+o.class:''));
+
+	if(o.textContent) this.$.text(o.textContent);
 
 	function setDims(){
 		var rat = o.isDepth?scene.height/1080:1;
 
 		me.$.css({
 			width: (me.width=o.px&&o.px[0]||Math.round(o.dims[0]*scene.width))+'px',
-			height: me.height=o.px&&o.px[1]||(o.dims[1]/rat)*100+'%',
+			height: me.height=o.px&&o.px[1]||Math.round((o.dims[1]/rat)*scene.height)+'px',
 		});
 
 		me.rwidth = o.px?o.px[0]/scene.width:o.dims[0];
