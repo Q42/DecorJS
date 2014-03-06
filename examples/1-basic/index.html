@@ -1,0 +1,74 @@
+<html>
+	<head>
+		<title>DecorJS Example 1: Scene basics</title>
+		<script src="../../src/decor.js" type="text/javascript"></script>
+		<link rel="stylesheet" type="text/css" href="../../src/decor.css" />
+		<style>
+			scene { background-color: #bbb; overflow-x: scroll; }
+			
+			.text { 
+				font-family: Courier New;
+				text-align: center;
+				font-size: 24px;
+			}
+
+			.plane1 { background: #fff; }
+			.plane2 { background: #0fb; }
+			.plane3 { background: #0bf; }
+			.plane4 { background: #f00; }
+			.plane5 { background: #0f0; }
+			.plane6 { background: #fb0; }
+			
+		</style>
+	</head>
+	<body>
+	</body>
+	<script type="text/javascript">
+
+		// A scene is defined like this
+		Decor.Scenes.HelloWorld = {
+
+			// Scene settings
+			scrolling: true, // allow browser scrollbars
+			width: 2,        // screen width = 1
+
+			/* 
+			** A scene consists of objects. They are defined like this:
+			**
+			** { 
+			**   [ConstructorName]: [HTML className],
+			**
+			**   // These are the attributes for the object's size and placement
+			**   o: {
+			**  	  pos: [x,y,z],         // Placement coordinates
+			**  	  dims: [width, height] // Size relative to the screen size (eg 0.5)
+		 	**   }
+	 		** }
+			*/
+			
+			// We use the simplest predefined primitive here, Thing.
+
+			objects: [
+				// Always arrange objects from back to forward (Z-coordinate)
+				{ Thing: 'plane4', o: { pos: [1.0,0,-700] , dims: [.1,.8] } },
+				{ Thing: 'plane1', o: { pos: [0,0,-600]   , dims: [.1,.8] } },
+				{ Thing: 'plane6', o: { pos: [1.8,0,-500] , dims: [.1,.8] } },
+				{ Thing: 'plane2', o: { pos: [0.3,0,-200] , dims: [.1,.8] } },
+				{ Thing: 'text',  o: { 
+					pos: [0,.75,0], dims: [1,.2],
+					textContent: 'Hello, World! Scroll this way -------->' 
+				} },
+				{ Thing: 'text',  o: { 
+					pos: [1.4,0,0], dims: [.5,.5],
+					textContent: 'View the page source for how it\'s done' 
+				} },
+				{ Thing: 'plane5', o: { pos: [1.3,0,100]  , dims: [.1,.8] } },
+				{ Thing: 'plane3', o: { pos: [0.75,0,200] , dims: [.1,.8] } },
+			]
+		};
+
+		// Load and start the scene
+		Decor.goto('HelloWorld')();
+
+	</script>
+</html>
