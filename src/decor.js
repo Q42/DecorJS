@@ -717,7 +717,10 @@ Decor.Things.Static = function(scene,name,o){ // :: Thing
 };
 
 Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
-	var me = this;
+	var me = this,
+		oHeight = innerHeight
+		;
+
 	Decor.Things.Static.call(this,scene,name,o);
 	$(o.selector).appendTo(this.$cnt);
 	if(o.watch) {
@@ -730,10 +733,12 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 	}
 
 	function resize(){
-		var px = Math.max(8,(16/1080)*scene.height);
+		var px = Math.max(8,16/(oHeight/innerHeight));
 		me.$cnt.css('font-size',px+'px');
 	};
-	scene.$.on('scene-show scene-resize',resize);
+
+	if(o.relativeFontSize)
+		scene.$.on('scene-show scene-resize',resize);
 
 };
 
