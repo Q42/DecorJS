@@ -811,7 +811,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 		}
 		if(a.class) $cnt.addClass(a.class);
 		Decor.Object3D.call(me,scene,$cnt,a);
-		if(a.clickable) (clickArea?$cl:me.$).click(me.focus);
+		if(a.clickable && a.clickToFocus) (clickArea?$cl:me.$).click(me.focus);
 		if(!a.static) me.$.appendTo(me.$cnt);
 		if(me.onload) me.onload();
 		scene.imageLoaded(name);
