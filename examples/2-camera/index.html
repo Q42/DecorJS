@@ -1,0 +1,75 @@
+<html>
+	<head>
+		<title>DecorJS Example 2: Camera usage</title>
+		<script src="../../src/decor.js" type="text/javascript"></script>
+		<link rel="stylesheet" type="text/css" href="../../src/decor.css" />
+		<style>
+			scene { background-color: #bbb; }
+			
+			.text,.left,.right { 
+				font-family: Courier New;
+				text-align: center;
+				font-size: 24px;
+			}
+
+			.plane1 { background: #f00; }
+			.plane2 { background: #fff; }
+			.plane3 { background: #fb0; }
+			.plane4 { background: #0fb; }
+			.plane5 { background: #0f0; }
+			.plane6 { background: #0bf; }
+			
+		</style>
+	</head>
+	<body>
+		<a id="left"  href="#">Click here to go right ----&gt;</a>
+		<a id="right" href="#" >Go back</a>
+	</body>
+	<script type="text/javascript">
+		// First set up our scene
+		// See example 1 for details on how to setup a scene
+		Decor.Scenes.Demo = {
+			width: 2,
+			focusDuration: 250,
+			prototypes: {
+				'plane': { dims: [.1,.8], clickable: true }
+			},
+			objects: [
+				{ Thing: '$plane', o: { pos: [1.0,0,-700], class: 'plane1' } },
+				{ Thing: '$plane', o: { pos: [0,0,-600]  , class: 'plane2' } },
+				{ Thing: '$plane', o: { pos: [1.8,0,-500], class: 'plane3' } },
+				{ Thing: '$plane', o: { pos: [0.3,0,-200], class: 'plane4' } },
+
+				// Use HTMLContain to encapsulate existing HTML elements
+				{ HTMLContain: 'left', o: { pos: [0,0.75,0], dims: [1,.1],  selector: '#left' } },
+				{ HTMLContain: 'right', o: { pos: [1.75,0.4,0], dims: [.2,.05],  selector: '#right' } },
+
+				{ Thing: 'text',  o: {
+					pos: [1.02,0.2,0], dims: [.2,.3],
+					textContent: 'Click on pillars to switch focus' 
+				} },
+
+				{ Thing: '$plane', o: { pos: [1.3,0,100] , class: 'plane5' } },
+				{ Thing: '$plane', o: { pos: [0.75,0,200], class: 'plane6' } },
+			]
+		};
+
+		// Load and start the scene
+		Decor.goto('Demo')();
+
+		// Set up our hooks
+		$('#left').on('click',function(){
+			Decor.currentScene.camera.panTo([1,0,0],1500);
+		});
+
+		$('#right').on('click',function(){
+			Decor.currentScene.camera.panTo([0,0,0],500,'ease-out');
+		});
+
+		// The planes
+		$('.clickable').on('click',function(e){
+			e.target.thing.focus();
+		});
+
+	</script>
+</html>
