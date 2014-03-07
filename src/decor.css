@@ -2,7 +2,6 @@ html,body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	cursor: default;
 	-webkit-backface-visibility: hidden;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 	-ms-content-zooming: none;
@@ -39,20 +38,18 @@ scene thing, scene .dud {
 scene>thing,
 scene>.dud,
 scene>img {
-	transition: none .4s ease-in-out;
-	pointer-events: none;
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
+}
+scene.resizing>thing,
+scene.resizing>.dud,
+scene.resizing>img {
+	-webkit-transition-property: none;
+	transition-property: none;
 }
 scene thing.clickable, scene .dud.clickable, scene a.dud, scene a.dud>img {
 	pointer-events: all;
 	cursor: pointer;
-}
-scene.animate:not(.resizing)>thing,
-scene.animate:not(.resizing)>img,
-scene.animate:not(.resizing)>.dud {
-	-webkit-transition-property: -webkit-transform;
-	transition-property: transform;
 }
 container {
 	display: block;

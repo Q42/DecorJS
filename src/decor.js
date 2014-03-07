@@ -116,6 +116,8 @@ Decor = new function(){
 	c3 = {
 		transform: c3p+'transform',
 		transition: c3p+'transition',
+		transitionD: c3p+'transition-duration',
+		transitionTF: c3p+'transition-timing-function',
 		animation: c3p+'animation'
 	};
 
@@ -375,6 +377,7 @@ Decor.Camera = function(scene){
 	this.position = [0,0,0];
 
 	function insideView(cb){
+		if(!cb instanceof Function) return;
 		var sq = {
 			l: me.position[0]-1,
 			r: me.position[0]+2,
@@ -385,20 +388,31 @@ Decor.Camera = function(scene){
 			var o = scene.objects[x];
 			if(!o.matrix) continue;
 			if(!o.attr.main) {
-				if(scene.data.renderAll||o.matrix.intersects(sq)) {
+				//if(scene.data.renderAll||o.matrix.intersects(sq)) {
 					//o.setNotInView(false);
-					cb&&cb.call(o);
-				}
+					cb.call(o);
+				//}
 				//else o.setNotInView(true);
 			}
 		}
+	};
+
+	this.panTo = function(coo,duration,fn) {
+		if(!(coo instanceof Array)) return;
+		var css = {};
+		css[c3.transitionTF] = fn||'ease-in-out';
+		css[c3.transitionD] = (duration||0)/1000+'s';
+		insideView(function(){
+			this.$cnt.css(css);
+		});
+		me.setPosition(coo);
 	};
 
 	this.setPosition = function(c,reset) {
 		var cp = c+'';
 		if(ppos==cp) return;
 		ppos=cp;
-		me.position[0] = Math.min(scene.data.width,Math.max(0,c[0]));
+		me.position[0] = Math.min(scene.data.width,Math.max(-1,c[0]));
 		me.position[1] = Math.min(oY,Math.max(0,c[1]));
 		me.position[2] = c[2];
 		insideView(function(){
@@ -416,8 +430,7 @@ Decor.Camera = function(scene){
 };
 
 Decor.Object3D = function(scene,$el,o) {
-	var me = this
-		, to = null;
+	var me = this;
 
 	this.matrix = new Decor.Mat3D(this,o.pos,o.rot,o.scale);
 	this.notInView = false;
@@ -451,11 +464,6 @@ Decor.Object3D = function(scene,$el,o) {
 	};
 
 	this.focus = function(){
-		if(scene.dimmed && $el.hasClass('open'))
-			return $('.nav.back').click();
-
-		clearTimeout(to);
-		scene.$.addClass('animate');
 		var evt = 'zoom-out';
 		if($el.toggleClass('open').hasClass('open')) {
 			evt = 'zoom-in';
@@ -469,17 +477,14 @@ Decor.Object3D = function(scene,$el,o) {
 			if(h>scene.height) pos[2]-=scene.height-h*1.05;
 			else if(w>scene.width) pos[2]-=(scene.width-w)/2;
 
-			pos[0]-=((1-o.width)/2);
+			pos[0]-=(1-(o.width||0))/2;
 			pos[2]*=-1;
 
-			scene.camera.setPosition(pos);
+			scene.camera.panTo(pos,scene.data.focusDuration||0);
 		}
 		else scene.camera.resetZ();
 
 		scene.$.trigger(evt,me.name);
-		to = setTimeout(function(){
-			scene.$.removeClass('animate');
-		},500);
 	};
 
 	this.place();
@@ -675,14 +680,17 @@ Decor.Things.Thing = function(scene,name,o){
 	this.scene = scene;
 
 	var $cnt = $(o.static?'<thing>':'<dud class="dud">');
-	$cnt[0].thing = this;
 	this.$cnt = $cnt;
 
 	if(o.static) this.$ = $cnt;
 	else this.$ = $('<thing>').appendTo($cnt);
 
+	this.$[0].thing = $cnt[0].thing = this;
+
 	if(o.static) $cnt.addClass('static');
 	this.$.addClass(name+(o.class?' '+o.class:''));
+
+	if(o.clickable) $cnt.addClass('clickable');
 
 	if(o.textContent) this.$.text(o.textContent);
 
