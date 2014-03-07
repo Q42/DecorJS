@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<title>DecorJS Example 2: Camera usage</title>
+		<meta name="author" content="Marcel Duin, marcel@q42.nl">
 		<script src="../../src/decor.js" type="text/javascript"></script>
 		<link rel="stylesheet" type="text/css" href="../../src/decor.css" />
 		<style>
@@ -41,10 +42,10 @@
 				{ Thing: '$plane', o: { pos: [0.3,0,-200], class: 'plane4' } },
 
 				// Use HTMLContain to encapsulate existing HTML elements
-				{ HTMLContain: 'left', o: { pos: [0,0.75,0], dims: [1,.1],  selector: '#left' } },
-				{ HTMLContain: 'right', o: { pos: [1.75,0.4,0], dims: [.2,.05],  selector: '#right' } },
+				{ HTMLContain: 'left', o: { pos: [0,0.75,0]   , dims: [1,.1]  , selector: '#left' } },
+				{ HTMLContain: 'right', o: { pos: [1.75,0.4,0], dims: [.2,.05],	selector: '#right' } },
 
-				{ Thing: 'text',  o: {
+				{ Thing: 'text', o: {
 					pos: [1.02,0.2,0], dims: [.2,.3],
 					textContent: 'Click on pillars to switch focus' 
 				} },
