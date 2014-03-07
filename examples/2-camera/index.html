@@ -52,25 +52,34 @@
 
 				{ Thing: '$plane', o: { pos: [1.3,0,100] , class: 'plane5' } },
 				{ Thing: '$plane', o: { pos: [0.75,0,200], class: 'plane6' } },
-			]
+			],
+
+			// oninit is called when the scene DOM has been populated
+			oninit: function(scene) {
+
+				// Access compiled scene objects using .getThing
+				var left = scene.getThing('left');
+				var right = scene.getThing('right');
+
+				// Add events through their main DOM element
+				left.$.on('click',function(){
+					scene.camera.panTo([1,0,0],1500);
+				});
+
+				right.$.on('click',function(){
+					scene.camera.panTo([0,0,0],500,'ease-out');
+				});
+
+				// The planes
+				scene.$.find('.clickable').on('click',function(e){
+					e.target.thing.focus();
+				});
+
+			}
 		};
 
 		// Load and start the scene
 		Decor.goto('Demo')();
-
-		// Set up our hooks
-		$('#left').on('click',function(){
-			Decor.currentScene.camera.panTo([1,0,0],1500);
-		});
-
-		$('#right').on('click',function(){
-			Decor.currentScene.camera.panTo([0,0,0],500,'ease-out');
-		});
-
-		// The planes
-		$('.clickable').on('click',function(e){
-			e.target.thing.focus();
-		});
 
 	</script>
 </html>
