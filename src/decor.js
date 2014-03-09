@@ -842,7 +842,7 @@ Decor.Things.ImageLink = function(scene,name,a){ // :: ImageContain
 	a.tagName = 'a';
 	Decor.Things.ImageContain.call(this,scene,name,a);
 	this.$cnt[0].href = a.href;
-	this.$cnt[0].target = '_blank';
+	if(a.external) this.$cnt[0].target = '_blank';
 	if(a.title) this.$cnt[0].title = a.title;
 };
 
