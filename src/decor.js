@@ -370,6 +370,7 @@ Decor.Camera = function(scene){
 		, oY = scene.data.height-1
 		, pos = [0,0,0]
 		, ppos = pos+''
+		, aniTo = null
 		, r = [0,0,0]
 		;
 
@@ -397,15 +398,26 @@ Decor.Camera = function(scene){
 		}
 	};
 
-	this.panTo = function(coo,duration,fn) {
+	function resetAnimation(){
+		var css = {};
+		css[c3.transitionTF] = '';
+		css[c3.transitionD] = '';
+		insideView(function(){
+			this.$cnt.css(css);
+		});
+	};
+
+	this.panTo = function(coo,duration,fn,reset) {
 		if(!(coo instanceof Array)) return;
+		clearTimeout(aniTo);
 		var css = {};
 		css[c3.transitionTF] = fn||'ease-in-out';
 		css[c3.transitionD] = (duration||0)/1000+'s';
 		insideView(function(){
 			this.$cnt.css(css);
 		});
-		me.setPosition(coo);
+		me.setPosition(coo,reset);
+		setTimeout(resetAnimation,duration+50);
 	};
 
 	this.setPosition = function(c,reset) {
@@ -423,8 +435,8 @@ Decor.Camera = function(scene){
 	this.reset = function(){
 		me.setPosition([0,0,0],true);
 	};
-	this.resetZ = function(){
-		me.setPosition([me.position[0],me.position[1],0],true);
+	this.resetZ = function(dur){
+		me.panTo([me.position[0],me.position[1],0],dur,null,null,true);
 	};
 
 };
@@ -482,7 +494,7 @@ Decor.Object3D = function(scene,$el,o) {
 
 			scene.camera.panTo(pos,scene.data.focusDuration||0);
 		}
-		else scene.camera.resetZ();
+		else scene.camera.resetZ(scene.data.focusDuration||0);
 
 		scene.$.trigger(evt,me.name);
 	};
@@ -807,7 +819,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 		if(a.static) {
 			me.$.css('width',w);
 			me.$cnt.replaceWith(me.$);
-			$cnt = me.$;
+			me.$cnt = $cnt = me.$;
 		}
 		if(a.class) $cnt.addClass(a.class);
 		Decor.Object3D.call(me,scene,$cnt,a);
