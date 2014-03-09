@@ -550,7 +550,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		var coo = [
 			Math.round(fact[0]*(xyz[0]+rel[0]+co[0]-tx)),
 			-Math.round(fact[1]*(xyz[1]+rel[1]+ty)),
-			Math.round(sd*(xyz[2]+rel[2]+cpos[2]))+co[2]
+			sd*(xyz[2]+rel[2]+cpos[2])+co[2]
 		];
 
 		att.push('translate3d('+coo.join('px,')+'px)');
