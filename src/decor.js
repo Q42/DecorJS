@@ -16,8 +16,8 @@ if(!window.$) {
 	$ = function(s){return new _$(s)};
 
 	$.extend = function(){
-		var a = arguments, r = a[0]===true, o = a[r&&1||0];
-		function cp(i,o) { for(var x in i) { var p = i[x], c = p&&p.constructor; o[x] = (r&&c&&(c==Array||c==Object)) ? cp(p,new c) : (r&&c&&(c==Number||c==String)) ? c(p) : p; } return o };
+		var a = arguments, r = a[0]===true, o = a[r&&1||0], concatStrings = a[r&&3||2];
+		function cp(i,o) { for(var x in i) { var p = i[x], c = p&&p.constructor; o[x] = (r&&c&&(c==Array||c==Object)) ? cp(p,new c) : (c&&(c==Number||c==String)) ? (concatStrings&&c==String&&o[x]&&o[x].constructor==String)? o[x]+' '+p : c(p) : p; } return o };
 		for(var i=(r?2:1);i<a.length;i++) cp(a[i],o);
 		return o;
 	};
@@ -240,7 +240,7 @@ Decor.Scene = function(name,data){
 			for(var x in o){type=x,name=o[x];break;}
 			if(data.prototypes&&/^\$/.test(name)) {
 				name=name.substr(1);
-				o.o=$.extend(o.o,data.prototypes[name]);
+				o.o=$.extend(o.o,data.prototypes[name],true);
 				name=name.toLowerCase();
 			}
 			if(o.o.img) imgNum++;
