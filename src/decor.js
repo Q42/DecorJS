@@ -499,6 +499,7 @@ Decor.Object3D = function(scene,$el,o) {
 			else if(w>scene.width) pos[2]-=(scene.width-w)/2;
 
 			pos[0]-=(1-(o.width||0))/2;
+			pos[1]*=-1;
 			pos[2]*=-1;
 
 			scene.camera.panTo(pos,scene.data.focusDuration||0);
@@ -746,9 +747,7 @@ Decor.Things.Static = function(scene,name,o){ // :: Thing
 };
 
 Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
-	var me = this,
-		oHeight = innerHeight
-		;
+	var me = this;
 
 	Decor.Things.Static.call(this,scene,name,o);
 	$(o.selector).appendTo(this.$cnt);
@@ -762,8 +761,7 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 	}
 
 	function resize(){
-		var px = Math.max(8,16/(oHeight/innerHeight));
-		me.$cnt.css('font-size',px+'px');
+		me.$cnt.css('font-size',o.relativeFontSize*scene.height+'px');
 	};
 
 	if(o.relativeFontSize)
