@@ -369,8 +369,8 @@ Decor.Camera = function(scene){
 	var me = this
 		, oY = scene.data.height-1
 		, limit = scene.data.limitCamera
-		, pos = [0,0,0]
-		, ppos = pos+''
+		, startPos = scene.data.cameraPosition
+		, ppos = [0,0,0]+''
 		, aniTo = null
 		, r = [0,0,0]
 		;
@@ -439,6 +439,11 @@ Decor.Camera = function(scene){
 	this.resetZ = function(dur){
 		me.panTo([me.position[0],me.position[1],0],dur,null,null,true);
 	};
+
+	if(startPos) setTimeout(function(){
+		if(startPos.length==2) startPos.push(0);
+		me.setPosition(startPos);
+	});
 
 };
 
