@@ -764,8 +764,7 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 };
 
 Decor.Things.ImageContain = function(scene,name,a) {
-	a.width=a.width||1;
-	a.dims=[a.width,0];
+	if(a.width) a.dims=[a.width,0];
 
 	var me = this
 		, w = a.px?a.px[0]+'px':a.dims[0]*100+'%'
