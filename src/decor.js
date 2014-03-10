@@ -368,6 +368,7 @@ Decor.Scene = function(name,data){
 Decor.Camera = function(scene){
 	var me = this
 		, oY = scene.data.height-1
+		, limit = scene.data.limitCamera
 		, pos = [0,0,0]
 		, ppos = pos+''
 		, aniTo = null
@@ -424,8 +425,8 @@ Decor.Camera = function(scene){
 		var cp = c+'';
 		if(ppos==cp) return;
 		ppos=cp;
-		me.position[0] = Math.min(scene.data.width,Math.max(-1,c[0]));
-		me.position[1] = Math.min(oY,Math.max(0,c[1]));
+		me.position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
+		me.position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
 		me.position[2] = c[2];
 		insideView(function(){
 			this.place(reset)
