@@ -81,3 +81,12 @@ img.image {
 	-webkit-transform-style: preserve-3d;
 	transform-style: preserve-3d;
 }
+.overlay {
+	position: absolute;
+}
+.overlay>*{
+	position: relative;
+	width: 100%; height: 100%;
+	margin: 0;
+	padding: 0;
+}

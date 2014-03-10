@@ -324,7 +324,7 @@ Decor.Scene = function(name,data){
 		addEventListener('resize',resize);
 		if(data.audio) Decor.Audio.play(data.audio.src,data.audio);
 		me.$.trigger('scene-show',name);
-		onbeforeunload = function(){me.delete(null,0)};
+		onbeforeunload = function(){me.delete()};
 		setTimeout(function(){
 			me.$.addClass('shown');
 			$(document.body)
@@ -345,7 +345,7 @@ Decor.Scene = function(name,data){
 		setTimeout(function(){
 			me.$.removeClass('placed');
 			if(cb) cb();
-		},isNaN(dur)?1000:dur);
+		},data.hideDuration||0);
 	};
 
 	function del(cb){
@@ -358,9 +358,9 @@ Decor.Scene = function(name,data){
 		if(cb)cb();
 	};
 
-	this.delete = function(cb,dur){
+	this.delete = function(cb){
 		if(!shown) del(cb);
-		else me.hide(function(){del(cb)},dur);
+		else me.hide(function(){del(cb)});
 	};
 
 };
@@ -872,4 +872,30 @@ Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
 			pos: [a.pos[0]+i*a.trans[0],a.pos[1]+i*a.trans[1],a.pos[2]-i*a.trans[2]]
 		}));
 	}
+};
+
+Decor.Things.Overlay = function(scene,name,a){
+	var me = this
+		, $s = $(a.selector)
+		;
+
+	this.$cnt = $('<div class="overlay '+name+(a.class?' '+a.class:'')+'">')
+		.appendTo(document.body);
+
+	this.$ = ($s[0]?$s:$('<div>'))
+		.appendTo(this.$cnt);
+
+	function resize(){
+		me.$cnt.css({
+			width: a.px?a.px[0]:Math.round(scene.width*a.dims[0])+'px',
+			height: a.px?a.px[1]:Math.round(scene.height*a.dims[1])+'px',
+			left: scene.$[0].offsetLeft+Math.round(scene.width*a.pos[0])+'px',
+			top: scene.$[0].offsetTop+Math.round(scene.height*a.pos[1])+'px'
+		})
+	};
+
+	this.destroy = function(){me.$cnt.remove()};
+
+	scene.$.on('scene-show scene-resize',resize);
+
 };
