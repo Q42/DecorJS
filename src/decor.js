@@ -182,7 +182,7 @@ Decor.Scene = function(name,data){
 	data = $.extend(true,{},data);
 
 	var me = this
-		, format = 16/9
+		, format = data.aspectRatio||16/9
 		, res = data.res || [innerWidth,innerHeight*format]
 		, shown = false
 		, inited = false
