@@ -508,9 +508,13 @@ Decor.Object3D = function(scene,$el,o) {
 				if(offset[2]) pos[2]+=offset[2];
 			}
 
+			scene.currentFocus = me;
 			scene.camera.panTo(pos,scene.data.focusDuration||0);
 		}
-		else scene.camera.reset(scene.data.focusDuration||0);
+		else {
+			scene.currentFocus = null;
+			scene.camera.reset(scene.data.focusDuration||0);
+		}
 
 		scene.$.trigger(evt,me.name);
 	};
