@@ -484,7 +484,7 @@ Decor.Object3D = function(scene,$el,o) {
 		$el[0].style[c3d.transform] = me.matrix.getCSS(noscr);
 	};
 
-	this.focus = function(){
+	this.focus = function(offset){
 		var evt = 'zoom-out';
 		if($el.toggleClass('open').hasClass('open')) {
 			evt = 'zoom-in';
@@ -501,6 +501,12 @@ Decor.Object3D = function(scene,$el,o) {
 			pos[0]-=(1-(o.width||0))/2;
 			pos[1]*=-1;
 			pos[2]*=-1;
+
+			if(offset instanceof Array) {
+				pos[0]+=offset[0];
+				pos[1]+=offset[1];
+				if(offset[2]) pos[2]+=offset[2];
+			}
 
 			scene.camera.panTo(pos,scene.data.focusDuration||0);
 		}
