@@ -436,11 +436,11 @@ Decor.Camera = function(scene){
 		});
 	};
 
-	this.reset = function(){
-		me.setPosition([0,0,0],true);
+	this.reset = function(dur){
+		me.panTo([0,0,0],dur,null,true);
 	};
 	this.resetZ = function(dur){
-		me.panTo([me.position[0],me.position[1],0],dur,null,null,true);
+		me.panTo([me.position[0],me.position[1],0],dur,null,true);
 	};
 
 	if(startPos) setTimeout(function(){
@@ -510,7 +510,7 @@ Decor.Object3D = function(scene,$el,o) {
 
 			scene.camera.panTo(pos,scene.data.focusDuration||0);
 		}
-		else scene.camera.resetZ(scene.data.focusDuration||0);
+		else scene.camera.reset(scene.data.focusDuration||0);
 
 		scene.$.trigger(evt,me.name);
 	};
