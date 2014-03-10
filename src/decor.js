@@ -232,6 +232,9 @@ Decor.Scene = function(name,data){
 		inited = true;
 		me.$[0].scrollLeft = 0;
 		resize();
+		data.objects.sort(function(a,b){
+			return (a.o&&a.o.pos&&a.o.pos[2]||0)-(b.o&&b.o.pos&&b.o.pos[2]||0);
+		});
 		for(var i=0;i<data.objects.length;i++) {
 			var o = data.objects[i];
 			o.o=o.o||{};
