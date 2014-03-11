@@ -333,6 +333,7 @@ Decor.Scene = function(name,data){
 			$(document.body)
 				.addClass('done-loading scene-shown')
 				.removeClass('loaded-'+[0,20,40,60,80,100].join(' loaded-'));
+			if(data.onshow) data.onshow(me);
 		});
 	};
 

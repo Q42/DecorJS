@@ -68,7 +68,9 @@ dl > dd {
       <dt>audio</dt>
       <dd>Array of <a href="#auddec">audio declaration objects</a> for presetting volumes for fragments.</dd>
       <dt>oninit(scene)</dt>
-      <dd>Handler which is called when the scene is initialized, the newly created scene is passed as argument.</dd>
+      <dd>Handler which is called when the scene is initialized, the newly created scene is passed as argument. <code>Image</code> objects will not have their matrices set yet.</dd>
+      <dt>onshow(scene)</dt>
+      <dd>Handler which is called when the scene is done loading and is being displayed. The newly created scene is passed as argument.</dd>
     </dl>
   </dd>
   <dt>getThing(name)</dt>
