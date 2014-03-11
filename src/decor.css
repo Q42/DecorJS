@@ -2,7 +2,6 @@ html,body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	-webkit-backface-visibility: hidden;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 	-ms-content-zooming: none;
 }
@@ -14,9 +13,9 @@ scene {
 	position: relative;
 	-webkit-transform: translate3d(0,0,0);
 	-webkit-transform-origin: left top;
-	-webkit-perspective-origin: 50% 60%;
+	-webkit-perspective-origin: 50% 50%;
 	-webkit-perspective: 200px;
-	perspective-origin: 50% 60%;
+	perspective-origin: 50% 50%;
 	perspective: 200px;
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
@@ -33,13 +32,14 @@ scene>.canvas {
 }
 scene thing, scene .dud {
 	display: block;
-	position: absolute;
 }
 scene>thing,
 scene>.dud,
 scene>img {
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
+	transform-origin: center bottom;
+	-webkit-transform-origin: center bottom;
 }
 scene.resizing>thing,
 scene.resizing>.dud,
@@ -64,7 +64,6 @@ img.image {
 	height: auto;
 	backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
-	backface-visibility: hidden;
 	pointer-events: none;
 }
 .static.imagebg {
