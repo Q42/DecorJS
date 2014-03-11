@@ -38,8 +38,8 @@ scene>.dud,
 scene>img {
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
-	transform-origin: center bottom;
-	-webkit-transform-origin: center bottom;
+	transform-origin: left bottom;
+	-webkit-transform-origin: left bottom;
 }
 scene.resizing>thing,
 scene.resizing>.dud,
