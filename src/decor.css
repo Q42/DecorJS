@@ -67,6 +67,9 @@ img.image {
 	backface-visibility: hidden;
 	pointer-events: none;
 }
+.static.imagebg {
+	background-size: 100% 100%;
+}
 .clickable,
 .clickable:not(.has-area) img.image {
 	pointer-events: all;

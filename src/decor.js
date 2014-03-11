@@ -73,9 +73,9 @@ if(!window.$) {
 		text        : function(t)    { if(t===undefined) return this[0]&&this[0].textContent; this.each(function(){this.textContent=t}); return this },
 		html        : function(h)    { if(t===undefined) return this[0]&&this[0].innerHTML; this.each(function(){this.innerHTML=h}); return this },
 		hasClass    : function(cl,h) { h=0;this.each(function(){h+=this.classList.contains(cl)&&1||0});return !!h },
-		addClass    : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) this.classList.add(cl[i])});return this },
-		removeClass : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) this.classList.remove(cl[i])});return this },
-		toggleClass : function(cl)   { cl=cl.split(' ');for(var x in cl) this[(this.hasClass(cl[x])?'remove':'add')+'Class'](cl[x]); return this },
+		addClass    : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) if(cl[i]) this.classList.add(cl[i])});return this },
+		removeClass : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) if(cl[i]) this.classList.remove(cl[i])});return this },
+		toggleClass : function(cl)   { cl=cl.split(' ');for(var x in cl) if(cl[x]) this[(this.hasClass(cl[x])?'remove':'add')+'Class'](cl[x]); return this },
 		setcss      : function(v,p)  { this.each(function(){this.style.setProperty(v,p)}); return this },
 		getcss      : function(p)    { return this[0]&&this[0].style.getPropertyValue(p); },
 		css         : function(a,b)  { if(typeof a == 'string') if(b===undefined) return this.getcss(a); else this.setcss(a,b);else for(var x in a) this.setcss(x,a[x]); return this },
@@ -727,7 +727,7 @@ Decor.Things.Thing = function(scene,name,o){
 
 	if(o.textContent) this.$.text(o.textContent);
 
-	function setDims(){
+	this.setDims = function(){
 		var rat = o.isDepth?scene.height/1080:1;
 
 		me.$.css({
@@ -739,15 +739,15 @@ Decor.Things.Thing = function(scene,name,o){
 		me.rheight = o.px?o.px[1]/scene.height:o.dims[1];
 	};
 
-	scene.$.on('scene-resize',setDims);
-
-	setDims();
-
 	this.show = function(){$cnt.appendTo(scene.$)};
 	this.hide = function(){$cnt.remove()};
 	this.destroy = function(){$cnt.remove()};
 
 	Decor.Object3D.call(this,scene,$cnt,o);
+
+	scene.$.on('scene-resize',this.setDims);
+
+	this.setDims();
 
 	if(!o.noshow) this.show();
 };
@@ -864,9 +864,25 @@ Decor.Things.ImageLink = function(scene,name,a){ // :: ImageContain
 };
 
 Decor.Things.ImageBG = function(scene,name,o){ // :: Static
+	var me = this;
+	o.class = 'imagebg '+(o.class||'');
+
 	Decor.Things.Static.call(this,scene,name,o);
-	scene.imageLoaded();
-	this.$cnt.css('background-image','url('+o.img+')');
+
+	if(o.width) {
+		o.dims[0] = o.width;
+		o.dims[1] = 0;
+		var img = new Image;
+		img.onload = function(){
+			o.dims[1] = o.dims[0] * img.height/img.width / (scene.height/scene.width);
+			me.setDims();
+			scene.imageLoaded();
+		};
+		img.src = o.img;
+	}
+	else scene.imageLoaded();
+
+	this.$.css('background-image','url('+o.img+')');
 };
 
 Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
