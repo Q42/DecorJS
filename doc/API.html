@@ -1,0 +1,257 @@
+<style>
+pre, code {
+  font-family: Menlo, Consolas, Monaco, "Lucida Console", monospace;
+}
+h2 code, h3 code, dl > dt {
+  padding: 3px 15px;
+  font-family: Menlo, Consolas, Monaco, "Lucida Console", monospace;
+  background-color: #d6e7ff;
+}
+h2 code {
+  background-color: #e1ffcd;
+}
+h3 code {
+  background-color: #ffedcd;
+}
+dl > dd {
+  padding: 1em;
+}
+</style>
+
+<h1>DecorJS API</h1>
+
+<h2><code>Decor</code> object</h2>
+<dl>
+  <dt>Scenes</dt>
+  <dd>Map of Scene declarations, indexed by name</dd>
+  <dt>Things</dt>
+  <dd>Map of Thing declarations, indexed by name</dd>
+  <dt>currentScene</dt>
+  <dd>The currently visible Scene object</dd>
+  <dt>goto(name)</dt>
+  <dd>Returns a handler function that hides the current scene and shows the scene with the given name, creating a new instance if needed.</dd>
+  <dt>resetTo(name)</dt>
+  <dd>Returns a handler function that resets to the scene with the given name, by deleting all the scene instances.</dd>
+  <dt>reloadScene()</dt>
+  <dd>Reset the current scene</dd>
+  <dt>reset()</dt>
+  <dd>Reset to the primary scene</dd>
+  <dt>resetHard()</dt>
+  <dd>Forgets the current scene and reloads the page</dd>
+</dl>
+
+<h2><code>Decor.Scene</code> class</h2>
+<dl>
+  <dt>Decor.Scene(name, declaration)</dt>
+  <dd>Constructor. Possible <code>declaration</code> properties:
+    <dl>
+    	<dt>aspectRatio</dt>
+    	<dd>The scene viewport aspect ratio. Default value: <code>16/9</code>.</dd>
+    	<dt>width</dt>
+    	<dd>The scene width relative to the viewport width. Default value: 1.</dd>
+    	<dt>height</dt>
+    	<dd>The scene height relative to the viewport height. Default value: 1.</dd>
+      <dt>objects</dt>
+      <dd>Array of object declarations. The first property is special. Its name is the <a href="#type">type</a> and its value is the object name. The second property should be the <code>o</code> property, which is an declaration object with more properties, specific to the type of the object.</dd>
+		  <dt>prototypes</dt>
+		  <dd>Map of prototypes, indexed by name. When an object name starts with a <code>$</code>, it will inherit the properties from the prototype with that name (without the <code>$</code>).</dd>
+      <dt>res</dt>
+      <dd>Scene native resolution in [width, height] array in pixels. When used, the scene DOM element will be that size and scaled to the window size.</dd>
+      <dt>scrolling</dt>
+      <dd>Boolean. Allow browser-native overflow scrolling of the scene. Disabled by default.</dd>
+      <dt>scrollLeft</dt>
+      <dd>Value between <code>0</code> and <code>width</code>. If set, the scene is horizontally scrolled to this position on init.</dd>
+      <dt>limitCamera</dt>
+      <dd>Boolean. The camera's boundaries are the scene width and height.</dd>
+      <dt>hideDuration</dt>
+      <dd>Duration in ms Decor waits to switch to or hide a scene. Useful for fadeout transitions.</dd>
+      <dt>audio</dt>
+      <dd>Array of <a href="#auddec">audio declaration objects</a> for presetting volumes for fragments.</dd>
+      <dt>oninit(scene)</dt>
+      <dd>Handler which is called when the scene is initialized, the newly created scene is passed as argument.</dd>
+    </dl>
+  </dd>
+  <dt>getThing(name)</dt>
+  <dd>Returns the object with the given name.</dd>
+  <dt>camera</dt>
+  <dd>Get the camera object for this scene.</dd>
+  <dt>scene-resize</dt>
+  <dd>Event</dd>
+  <dt>scene-show</dt>
+  <dd>Event, passes the name of the scene in the <code>detail</code> property of the event object.</dd>
+  <dt>scene-hide</dt>
+  <dd>Event, passes the name of the scene in the <code>detail</code> property of the event object.</dd>
+</dl>
+
+<h2><code>Decor.Camera</code> class</h2>
+<p>There's one Camera instance per Scene.</p>
+<dl>
+  <dt>panTo(coord, duration, timing-function, reset)</dt>
+  <dd>Animate the camera position. <code>coord</code> is an <code>[x, y, z]</code> array. <code>Duration</code> defines the panning duration in ms, default is <code>0</code>. <code>Timing-function</code> is the css-identifier of the timing function, defaults to <code>ease-in-out</code>. If <code>reset</code>, elements will not be placed relative to the browser scrollX.</dd>
+  <dt>setPosition(coord, reset)</dt>
+  <dd>Move the camera. <code>coord</code> is an <code>[x, y, z]</code> array. If <code>reset</code>, elements will not be placed relative to the browser scrollX.</dd>
+  <dt>reset()</dt>
+  <dd>Reset the camera to [0,0,0]</dd>
+  <dt>resetZ()</dt>
+  <dd>Reset the camera depth to 0.</dd>
+</dl>
+
+<h2><code>Decor.Object3D</code> class</h2>
+<p>All scene objects are extended with these properties directly.</p>
+<dl>
+  <dt>matrix</dt>
+  <dd>Mat3D object, defining this objects position and orientation in 3D space.</dd>
+  <dt>setPosition(coord)</dt>
+  <dd>Place the object. <code>coord</code> is an <code>[x, y, z]</code> array.</dd>
+  <dt>translate(coord)</dt>
+  <dd>Move the object. <code>coord</code> is an <code>[x, y, z]</code> array.</dd>
+  <dt>focus(offset)</dt>
+  <dd>Zoom in on the object. Optional camera offset as array.</dd>
+  <dt>zoom-in</dt>
+  <dd>Event, passes the name of the object in the <code>detail</code> property of the event object.</dd>
+  <dt>zoom-out</dt>
+  <dd>Event, passes the name of the object in the <code>detail</code> property of the event object.</dd>
+</dl>
+
+<h2><code>Decor.Mat3D</code> class</h2>
+<dl>
+  <dt>intersects(rect)</dt>
+  <dd>Checks if the thing where this matrix belongs to overlaps with the given rectangle in 2D space.
+    <code>rect</code> is an object with properties <code>t, l, b, r</code>.</dd>
+  <dt>getPosition()</dt>
+  <dd>returns <code>[x, y, z]</code> coordinates.</dd>
+  <dt>getElementPosition()</dt>
+  <dd>returns <code>[x, y, z]</code> coordinates, based on rendered values, ie if a CSS3-translation is used on top of the placement in the scene.</dd>
+</dl>
+
+<h2><code>Decor.Frame</code> object</h2>
+<p>A <code>requestAnimationFrame</code> wrapper which uses a function stack it executes in a single requestAnimationFrame-request rather than having parallel such calls. Auto starts when needed and idle and auto stops when the stack is empty.</p>
+<dl>
+  <dt>request(callback)</dt>
+  <dd>Add the callback to the list of functions to be called with the next animation frame.</dd>
+  <dt>cancel(callback)</dt>
+  <dd>Remove the callback from the list.</dd>
+  <dt>start()</dt>
+  <dd>Keep requesting animation frames while there are still callbacks.</dd>
+  <dt>stop()</dt>
+  <dd>Do not request animation frames anymore.</dd>
+</dl>
+
+<h2><code>Decor.Audio</code> object</h2>
+<p>Cross-browser Audio player which allows for parallel plays of the same audio fragment</p>
+<dl>
+  <dt>play(src, declaration)</dt>
+  <dd>Play an audio file. The default audio type should be Ogg and the source url (<code>src</code>) should end in ".ogg". In browsers which don't support Ogg, ".ogg" will be replaced with ".mp3".<br>Possible <code>declaration</code> properties:
+    <dl id="auddec">
+      <dt>src</dt>
+      <dd>Use this property when adding audio to a Scene declaration.</dd>
+      <dt>volume</dt>
+      <dd>A floating point number between 0 and 1.</dd>
+    </dl>
+  </dd>
+  <dt>stop(src)</dt>
+  <dd>Stop all the sounds with the given source url.</dd>
+</dl>
+
+<h2 id="type">Object types</h2>
+<h3><code>Global object options</code></h3>
+<p>In the Scene definition objects, each element contains an <code>o</code> attribute object. The default possible properties shared by all objects:</p>
+<dl>
+  <dt>dims</dt>
+  <dd><code>[width, height]</code> array. Relative sizes, relative to the scene size. Defaults to <code>[1, 1]</code></dd>
+  <dt>px</dt>
+  <dd><code>[width, height]</code> array. Pixel sizes, alternative to <code>dims</code></dd>
+  <dt>pos</dt>
+  <dd><code>[x, y, z]</code> array, defaults to <code>[0, 0, 0]</code>.</dd>
+  <dt>rot</dt>
+  <dd><code>[rx, ry, rz]</code> array, rotation around the X, Y and Z axes. Optional.</dd>
+  <dt>class</dt>
+  <dd>Extra class names for the HTML element. The <code>name</code> of the object is always set as class name.</dd>
+</dl>
+
+
+<h3><code>Decor.Things.Thing :: Object3D</code></h3>
+<dl>
+  <dt>innerText</dt>
+  <dd>Text content of the HTML element.</dd>
+  <dt>static</dt>
+  <dd>By default a <code>Thing</code>'s content DOM element is inside a container, on which the actual css transforms are set. If <code>static</code> is set to true, the container and content DOM element will be the same element.</dd>
+  <dt>isDepth</dt>
+  <dd>For when using X-rotation to flatten the object horizontally, this affects how the height, or rather depth is calculated.</dd>
+  <dt>noshow</dt>
+  <dd>Don't put in DOM automatically when true.</dd>
+</dl>
+
+<h3><code>Decor.Things.Static :: Thing</code></h3>
+<p>Always sets the <code>static</code> property to true.</p>
+
+<h3><code>Decor.Things.HTMLContain :: Static</code></h3>
+<p>Put existing HTML elements inside a scene object.</p>
+<dl>
+  <dt>selector</dt>
+  <dd>Contentnode DOM selector</dd>
+  <dt>watch</dt>
+  <dd>Only show when the view is zoomed in (focused) on the object with the given name.</dd>
+</dl>
+
+<h3><code>Decor.Things.ThingsRep :: [Thing]</code></h3>
+<dl>
+  <dt>repeat</dt>
+  <dd>Number of times to repeat the thing.</dd>
+  <dt>trans</dt>
+  <dd><code>[dx, dy, dz]</code> Distance between the repeated things.</dd>
+</dl>
+
+
+<h3><code>Decor.Things.ImageContain :: Object3D</code></h3>
+<p>Images inside the scene.</p>
+<dl>
+  <dt>img</dt>
+  <dd>Image source url</dd>
+  <dt>width</dt>
+  <dd>Set the width of the image, and the height automatically, replaces <code>dims</code>.</dd>
+  <dt>tagName</dt>
+  <dd>Tag name of the container element.</dd>
+  <dt>static</dt>
+  <dd>By default an <code>Image</code>'s content DOM element is inside a container, on which the actual css transforms are set. If <code>static</code> is set to true, the container and content DOM element will be the same Image element.</dd>
+  <dt>clickable</dt>
+  <dd><code>true</code> or <code>[[left, top], [right, bottom]]</code> coords between 0 and 1, relative to the image size.
+    Zooms in on the image when clicked. The coords limit the area where the user can click.</dd>
+</dl>
+<h3><code>Decor.Things.Image :: ImageContain</code></h3>
+<p>Static version of the image container. The Image objects do not have a container element.</p>
+
+<h3><code>Decor.Things.ImageLink :: ImageContain</code></h3>
+<p>Use an image as a link</p>
+<dl>
+  <dt>href</dt>
+  <dd>URL which is opened</dd>
+  <dt>external</dt>
+  <dd>Boolean. If set to true, the link opens in a new window or tab</dd>
+  <dt>title</dt>
+  <dd>Image tooltip</dd>
+</dl>
+<h3><code>Decor.Things.ImageBG :: Static</code></h3>
+<dl>
+  <dt>img</dt>
+  <dd>Image source url, set as background image.</dd>
+</dl>
+<h3><code>Decor.Things.ImageRep :: [Image]</code></h3>
+<dl>
+  <dt>repeat</dt>
+  <dd>Number of times to repeat the image. They are positioned next to eachother.</dd>
+</dl>
+
+
+<h3><code>Decor.Things.Overlay</code></h3>
+<p>Create a HTML overlay relative to the scene viewport</p>
+<dl>
+  <dt>pos</dt>
+  <dd>Array of X and Y position inside the scene viewport</dd>
+  <dt>dims</dt>
+  <dd>Array of width and height of the container, relative to viewport size</dd>
+  <dt>px</dy>
+  <dd>Array of pixel values to give it a static size</dd>
+  <dt>selector</dt>
+  <dd>Contentnode DOM selector</dd>
+</dl>
