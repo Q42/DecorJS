@@ -22,26 +22,6 @@ if(!window.$) {
 		return o;
 	};
 
-	$.browser = new function(){
-		var ualc = navigator.userAgent.toLowerCase();
-
-		this.webkit = /applewebkit/.test(ualc);
-		this.firefox = /firefox/.test(ualc);
-		this.safari = /safari/.test(ualc) && !/chrome/.test(ualc);
-		this.ie = /msie/.test(ualc) || /trident/.test(ualc);
-		this.iOS = /ipad|iphone|ipod/.test(ualc);
-		this.android = /android/.test(ualc);
-		this.mobile = this.iOS || this.android;
-		this.unknown = !this.webkit&&!this.firefox&&!this.ie&&!this.iOS&&!this.android;
-
-		var vstr = this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
-			: this.firefox?ualc.match(/firefox\/(\d+)\./)[1]
-			: this.ie?ualc.match(/(msie\s|rv\:)(\d+)\./)[2]
-			: -1;
-
-		this.version = parseFloat(vstr);
-	};
-
 	function _getEls(sel,par){
 		if(sel==window) return [window];
 		if(sel instanceof Element) return [sel];
@@ -85,7 +65,31 @@ if(!window.$) {
 		height      : function()     { return this[0]&&this[0].clientHeight }
 	};
 
-};
+}
+
+if(!$.browser) {
+	$.browser = new function(){
+		var ualc = navigator.userAgent.toLowerCase();
+
+		this.webkit = /applewebkit/.test(ualc);
+		this.firefox = /firefox/.test(ualc);
+		this.safari = /safari/.test(ualc) && !/chrome/.test(ualc);
+		this.ie = /msie/.test(ualc) || /trident/.test(ualc);
+		this.iOS = /ipad|iphone|ipod/.test(ualc);
+		this.android = /android/.test(ualc);
+		this.mobile = this.iOS || this.android;
+		this.unknown = !this.webkit&&!this.firefox&&!this.ie&&!this.iOS&&!this.android;
+
+		var vstr = this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
+			: this.firefox?ualc.match(/firefox\/(\d+)\./)[1]
+			: this.ie?ualc.match(/(msie\s|rv\:)(\d+)\./)[2]
+			: -1;
+
+		this.version = parseFloat(vstr);
+	};
+
+}
+
 
 //Main
 Decor = new function(){
