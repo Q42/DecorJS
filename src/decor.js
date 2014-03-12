@@ -71,7 +71,7 @@ if(!window.$) {
 		off         : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.removeEventListener(e[x],f)}); return this },
 		click       : function(f)    { if(f instanceof Function) this.on('click',f); else this.trigger('click'); return this },
 		text        : function(t)    { if(t===undefined) return this[0]&&this[0].textContent; this.each(function(){this.textContent=t}); return this },
-		html        : function(h)    { if(t===undefined) return this[0]&&this[0].innerHTML; this.each(function(){this.innerHTML=h}); return this },
+		html        : function(h)    { if(h===undefined) return this[0]&&this[0].innerHTML; this.each(function(){this.innerHTML=h}); return this },
 		hasClass    : function(cl,h) { h=0;this.each(function(){h+=this.classList.contains(cl)&&1||0});return !!h },
 		addClass    : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) if(cl[i]) this.classList.add(cl[i])});return this },
 		removeClass : function(cl)   { cl=cl.split(' ');this.each(function(){for(var i in cl) if(cl[i]) this.classList.remove(cl[i])});return this },
