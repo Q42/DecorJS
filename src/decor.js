@@ -726,6 +726,7 @@ Decor.Things.Thing = function(scene,name,o){
 
 	if(o.static) $cnt.addClass('static');
 	this.$.addClass(name+(o.class?' '+o.class:''));
+	this.$cnt.addClass(name+'-cnt');
 
 	if(o.clickable) $cnt.addClass('clickable');
 
@@ -842,6 +843,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 			me.$cnt.replaceWith(me.$);
 			me.$cnt = $cnt = me.$;
 		}
+		$cnt.addClass(name+'-cnt');
 		if(a.class) $cnt.addClass(a.class);
 		Decor.Object3D.call(me,scene,$cnt,a);
 		if(a.clickable && a.clickToFocus) (clickArea?$cl:me.$).click(me.focus);
