@@ -640,7 +640,8 @@ Decor.Frame = new function(){
 
 	function cycle(t){
 		if(!q.length) return stop();
-		while(q.length) q.shift()(t);
+		var num = q.length;
+		while(num--) q.shift()(t);
 		raf = requestAnimationFrame(cycle);
 	};
 
