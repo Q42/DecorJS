@@ -532,8 +532,7 @@ Decor.Object3D = function(scene,$el,o) {
 Decor.Mat3D = function(thing,xyz,rot,scale) {
 	xyz = xyz||[0,0,0];
 	rot = rot||[0,0,0];
-	scale = scale?scale.length?scale:[scale||1,scale||1,1]:[1,1,1];
-	if(scale.length==2) scale.push(1);
+	scale = getScale(scale);
 
 	var me = this
 		, scene = thing.scene
@@ -541,6 +540,12 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		, rel = [0,0,0]
 		, size = [thing.rwidth,thing.rheight]
 		;
+
+	function getScale(v){
+		v=v?v.length?v:[v||1,v||1,1]:[1,1,1];
+		if(v.length==2) v.push(1);
+		return v;
+	};
 
 	this.getQuad = function(c){
 		c=c||[0,0,0];
@@ -616,6 +621,19 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		}
 		return me;
 	};
+
+	Object.defineProperty(this, 'xyz', {
+		get: function(){ return xyz },
+		set: function(v){ xyz = v }
+	});
+	Object.defineProperty(this, 'rot', {
+		get: function(){ return rot },
+		set: function(v){ rot = v }
+	});
+	Object.defineProperty(this, 'scale', {
+		get: function(){ return scale },
+		set: function(v){ scale = getScale(v) }
+	});
 
 };
 
