@@ -468,7 +468,7 @@ Decor.Object3D = function(scene,$el,o) {
 
 	this.setPosition = function(coo) {
 		o.pos[0]=coo[0];
-		o.pos[1]=-coo[1];
+		o.pos[1]=coo[1];
 		o.pos[2]=coo[2];
 		me.reset().place();
 	};
