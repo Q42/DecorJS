@@ -739,7 +739,7 @@ Decor.Things.Thing = function(scene,name,o){
 	this.attr = o;
 	this.scene = scene;
 
-	var $cnt = $(o.static?'<thing>':'<dud class="dud">');
+	var $cnt = $('<thing class="thing">');
 	this.$cnt = $cnt;
 
 	if(o.static) this.$ = $cnt;
@@ -813,7 +813,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 
 	var me = this
 		, w = a.px?a.px[0]+'px':a.dims[0]*100+'%'
-		, $cnt = $('<'+(a.tagName||'dud')+' class="dud">').css('width',w).appendTo(scene.$)
+		, $cnt = $('<'+(a.tagName||'thing')+' class="thing">').css('width',w).appendTo(scene.$)
 		;
 
 	this.attr = a;
@@ -826,7 +826,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	img.onerror = scene.imageLoaded;
 	img.src = a.img;
 
-	me.$ = $(img);
+	me.$ = $(img).addClass('thing');
 	me.$cnt = $cnt;
 
 	$cnt[0].thing = this;
@@ -835,17 +835,14 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	var clickArea = a.clickable&&a.clickable.length;
 	if(isIE&&$.browser.version<11) clickArea = false;
 	var area = a.clickable&&a.clickable.length?a.clickable:[[0,0],[1,1]];
-	if(a.clickable) {
-		$cnt.addClass('clickable');
-		if(clickArea) {
-			$cnt.addClass('has-area');
-			$cl = $('<div class="click">')
-				.css({
-					left: area[0][0]*100+'%',
-					width: (area[1][0]-area[0][0])*100+'%'
-				})
-				.appendTo($cnt);
-		}
+	if(a.clickable && clickArea) {
+		$cnt.addClass('has-area');
+		$cl = $('<div class="click-area">')
+			.css({
+				left: area[0][0]*100+'%',
+				width: (area[1][0]-area[0][0])*100+'%'
+			})
+			.appendTo($cnt);
 	}
 
 	function resArea(){
@@ -867,6 +864,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 			me.$cnt = $cnt = me.$;
 		}
 		$cnt.addClass(name+'-cnt');
+		if(a.clickable) $cnt.addClass('clickable');
 		if(a.class) $cnt.addClass(a.class);
 		Decor.Object3D.call(me,scene,$cnt,a);
 		if(a.clickable && a.clickToFocus) (clickArea?$cl:me.$).click(me.focus);

@@ -25,38 +25,24 @@ scene>.canvas {
 	height: 1px;
 	width: 1px;
 }
-.dud,.static,thing {
+.thing, thing {
 	position: absolute;
 	bottom: 0;
 }
-scene thing, scene .dud {
+scene .thing, scene thing {
 	display: block;
 }
-scene>thing,
-scene>.dud,
-scene>img {
+scene>.thing {
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
 	transform-origin: left bottom;
 	-webkit-transform-origin: left bottom;
 }
-scene.resizing>thing,
-scene.resizing>.dud,
-scene.resizing>img {
+scene.resizing>.thing {
 	-webkit-transition-property: none;
 	transition-property: none;
 }
-scene thing.clickable, scene .dud.clickable, scene a.dud, scene a.dud>img {
-	pointer-events: all;
-	cursor: pointer;
-}
-container {
-	display: block;
-	position: relative;
-	width: 100%;
-	height: 100%;
-}
-img.image {
+scene .thing.image {
 	position: absolute;
 	bottom: 0;
 	width: 100%;
@@ -65,18 +51,21 @@ img.image {
 	-webkit-backface-visibility: hidden;
 	pointer-events: none;
 }
-.static.imagebg {
+scene .static.imagebg {
 	background-size: 100% 100%;
 }
-.clickable,
-.clickable:not(.has-area) img.image {
+.thing.has-area>.click-area {
+	position: absolute;
+}
+scene .thing.clickable,
+.clickable:not(.has-area) img.image,
+scene a.thing,
+scene a.thing>img {
 	pointer-events: all;
+	cursor: pointer;
 }
 .no-events {
 	pointer-events: none !important;
-}
-.click {
-	position: absolute;
 }
 .preserve-3d {
 	-webkit-transform-style: preserve-3d;
