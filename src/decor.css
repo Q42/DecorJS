@@ -12,7 +12,6 @@ scene {
 	display: block;
 	position: relative;
 	-webkit-transform: translate3d(0,0,0);
-	-webkit-transform-origin: left top;
 	-webkit-perspective-origin: 50% 50%;
 	-webkit-perspective: 200px;
 	perspective-origin: 50% 50%;
