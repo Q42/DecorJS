@@ -75,17 +75,18 @@ if(!$.browser) {
 		this.firefox = /firefox/.test(ualc);
 		this.safari = /safari/.test(ualc) && !/chrome/.test(ualc);
 		this.ie = /msie/.test(ualc) || /trident/.test(ualc);
+		this.iemobile = /iemobile/.test(ualc);
 		this.iOS = /ipad|iphone|ipod/.test(ualc);
 		this.android = /android/.test(ualc);
-		this.mobile = this.iOS || this.android;
+		this.mobile = this.iOS || this.android || this.iemobile;
 		this.unknown = !this.webkit&&!this.firefox&&!this.ie&&!this.iOS&&!this.android;
 
-		var vstr = this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
+		this.version = parseFloat(this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
 			: this.firefox?ualc.match(/firefox\/(\d+)\./)[1]
 			: this.ie?ualc.match(/(msie\s|rv\:)(\d+)\./)[2]
-			: -1;
+			: -1);
 
-		this.version = parseFloat(vstr);
+		this.retina = (window.devicePixelRatio && window.devicePixelRatio >= 2) && this.iOS;
 	};
 
 }
