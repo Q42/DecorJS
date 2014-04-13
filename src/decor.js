@@ -788,8 +788,7 @@ Decor.Things.Thing = function(scene,name,o){
 	};
 
 	this.show = function(){scene.placeThing(me)};
-	this.hide = function(){$cnt.remove()};
-	this.destroy = function(){$cnt.remove()};
+	this.hide = this.destroy = function(){$cnt.remove()};
 
 	Decor.Object3D.call(this,scene,$cnt,o);
 
@@ -830,15 +829,14 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 
 };
 
-Decor.Things.ImageContain = function(scene,name,a) {
-	if(a.width) a.dims=[a.width,0];
+Decor.Things.ImageContain = function(scene,name,o) {
+	if(o.width) o.dims=[o.width,0];
 
 	var me = this
-		, w = a.px?a.px[0]+'px':a.dims[0]*100+'%'
-		, $cnt = $('<'+(a.tagName||'thing')+' class="thing">').css('width',w)
+		, w = o.px?o.px[0]+'px':o.dims[0]*100+'%'
+		, $cnt = $('<'+(o.tagName||'thing')+' class="thing">').css('width',w)
 		;
 
-	this.attr = a;
 	this.scene = scene;
 
 	var img = null;
@@ -846,7 +844,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	img.thing = me;
 	img.onload = onload;
 	img.onerror = scene.imageLoaded;
-	img.src = a.img;
+	img.src = o.img;
 
 	me.$ = $(img).addClass('thing');
 	me.$cnt = $cnt;
@@ -854,10 +852,10 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	$cnt[0].thing = this;
 
 	var $cl = $();
-	var clickArea = a.clickable&&a.clickable.length;
+	var clickArea = o.clickable&&o.clickable.length;
 	if(isIE&&$.browser.version<11) clickArea = false;
-	var area = a.clickable&&a.clickable.length?a.clickable:[[0,0],[1,1]];
-	if(a.clickable && clickArea) {
+	var area = o.clickable&&o.clickable.length?o.clickable:[[0,0],[1,1]];
+	if(o.clickable && clickArea) {
 		$cnt.addClass('has-area');
 		$cl = $('<div class="click-area">')
 			.css({
@@ -875,29 +873,30 @@ Decor.Things.ImageContain = function(scene,name,a) {
 	if(clickArea) scene.$.on('scene-resize',resArea);
 
 	function onload(silent){
-		a.dims[1] = a.dims[0]*img.height/img.width;
-		me.rwidth = a.dims[0];
-		me.rheight = a.dims[1];
+		o.dims[1] = o.dims[0]*img.height/img.width;
+		me.rwidth = o.dims[0];
+		me.rheight = o.dims[1];
 		if(clickArea) resArea();
 		me.$.addClass('image '+name);
-		if(a.static) {
+		if(o.static) {
 			me.$.css('width',w);
 			me.$cnt.replaceWith(me.$);
 			me.$cnt = $cnt = me.$;
 		}
 		$cnt.addClass(name+'-cnt');
-		if(a.clickable) $cnt.addClass('clickable');
-		if(a.class) $cnt.addClass(a.class);
-		Decor.Object3D.call(me,scene,$cnt,a);
-		if(a.clickable && a.clickToFocus) (clickArea?$cl:me.$).click(me.focus);
-		if(!a.static) me.$.appendTo(me.$cnt);
+		if(o.clickable) $cnt.addClass('clickable');
+		if(o.class) $cnt.addClass(o.class);
+		Decor.Object3D.call(me,scene,$cnt,o);
+		if(o.clickable && o.clickToFocus) (clickArea?$cl:me.$).click(me.focus);
+		if(!o.static) me.$.appendTo(me.$cnt);
 		if(me.onload) me.onload();
 		scene.imageLoaded(name);
 	};
 
-	this.destroy = function(){$cnt.remove()};
+	this.show = function(){scene.placeThing(this)};
+	this.hide = this.destroy = function(){$cnt.remove()};
 
-	scene.placeThing(this);
+	if(!o.noshow) this.show();
 
 };
 
