@@ -320,10 +320,10 @@ Decor.Scene = function(name,data){
 		//Put in right place
 		for(var i in me.objects)
 			if(o.o.pos[2]<=me.objects[i].attr.pos[2])
-				return me.objects.splice(i,0,t);
+				return me.objects.splice(i,0,t)&&t;
 
 		//Otherwise just add to end
-		me.objects.push(t);
+		return me.objects.push(t)&&t;
 	};
 
 	this.placeThing = function(thing) {
