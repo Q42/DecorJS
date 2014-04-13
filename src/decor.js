@@ -35,6 +35,7 @@ if(!window.$) {
 	_$.prototype = {
 		each        : function(f)    { for(var i=0;i<this.length;i++) f.call(this[i]); return this },
 		remove      : function()     { this.each(function(){this.parentNode.removeChild(this)}); return this },
+		clone       : function()     { var r = [];this.each(function(){r.push(this.cloneNode(true))});return $(r) },
 		replaceWith : function(el)   { var me = this; if(me[0]) { if(el.each) el.each(function(){ me[0].parentNode.insertBefore(this,me[0]); }); else me[0].parentNode.insertBefore(el,me[0]); me.remove(); } return this },
 		appendTo    : function(el)   { el=el.length?el[0]:el;this.each(function(){el.appendChild(this)}); return this },
 		parent      : function()     { var r = [];this.each(function(){if(r.indexOf(this.parentNode)<0) r.push(this.parentNode)});return new _$(r); },
@@ -789,7 +790,9 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 	var me = this;
 
 	Decor.Things.Static.call(this,scene,name,o);
-	$(o.selector).appendTo(this.$cnt);
+
+	//Do not match selector inside scenes
+	$('body>'+o.selector+',body>*:not(scene) '+o.selector).hide().clone().show().appendTo(this.$cnt);
 	if(o.watch) {
 		me.$cnt.addClass('hidden');
 		scene.$.on('zoom-in zoom-out',function(e){
