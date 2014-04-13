@@ -37,6 +37,7 @@ if(!window.$) {
 		remove      : function()     { this.each(function(){this.parentNode.removeChild(this)}); return this },
 		clone       : function()     { var r = [];this.each(function(){r.push(this.cloneNode(true))});return $(r) },
 		replaceWith : function(el)   { var me = this; if(me[0]) { if(el.each) el.each(function(){ me[0].parentNode.insertBefore(this,me[0]); }); else me[0].parentNode.insertBefore(el,me[0]); me.remove(); } return this },
+		insertBefore: function(el)   { el=el.length?el[0]:el; this.each(function(){el.parentNode.insertBefore(this,el)})},
 		appendTo    : function(el)   { el=el.length?el[0]:el;this.each(function(){el.appendChild(this)}); return this },
 		parent      : function()     { var r = [];this.each(function(){if(r.indexOf(this.parentNode)<0) r.push(this.parentNode)});return new _$(r); },
 		children    : function(sel)  { sel = sel || '*';var ce = [];this.each(function(){var e = this.querySelectorAll(sel);for(var i=0;i<e.length;i++) if(e[i].parentNode==this) ce.push(e[i]);}); return new _$(ce) },
@@ -227,7 +228,7 @@ Decor.Scene = function(name,data){
 	function getAttr(o){
 		o=o||{};
 		o.dims = o.dims||[1,1];
-		o.pos = o.pos||[0,0,0];
+		o.pos = o.pos&&o.pos.length&&[o.pos[0]||0,o.pos[1]||0,o.pos[2]||0]||[0,0,0];
 		o.rot = o.rot||[0,0,0];
 		return o;	
 	};
@@ -238,36 +239,13 @@ Decor.Scene = function(name,data){
 		inited = true;
 		me.$[0].scrollLeft = 0;
 		resize();
-		for (var i = 0; i < data.objects.length; i++)
-			data.objects[i].originalIndex = i;
-		data.objects.sort(function(a,b){
-			return ((a.o&&a.o.pos&&a.o.pos[2]||0)-(b.o&&b.o.pos&&b.o.pos[2]||0))
-				|| (a.originalIndex - b.originalIndex);
+		for(var i=0;i<data.objects.length;i++)
+			me.addThing(data.objects[i]);
+		setTimeout(function(){
+			if(data.oninit) data.oninit(me);
+			if(!imgNum) loaded();
+			oImgNum = imgNum;
 		});
-		for(var i=0;i<data.objects.length;i++) {
-			var o = data.objects[i];
-			o.o=o.o||{};
-			if(o.o.noIE&&isIE) continue;
-			var type,name;
-			for(var x in o){type=x,name=o[x];break;}
-			if(data.prototypes&&/^\$/.test(name)) {
-				name=name.substr(1);
-				o.o=$.extend(o.o,data.prototypes[name],true);
-				name=name.toLowerCase();
-			}
-			if(o.o.name) name = o.o.name;
-			if(o.o.img) imgNum++;
-			var cons = Decor.Things[type];
-			if(!cons) console.error('Object type '+type+' not found');
-			else {
-				var t = new cons(me,name,getAttr(o.o));
-				t.name = name;
-				me.objects.push(t);
-			}
-		}
-		if(data.oninit) data.oninit(me);
-		if(!imgNum) loaded();
-		oImgNum = imgNum;
 	};
 
 	function loaded(){
@@ -315,13 +293,53 @@ Decor.Scene = function(name,data){
 		}
 	};
 
-	this.addLoadImage = function(){
-		imgNum++; oImgNum++;
-	};
-
 	this.getThing = function(n){
 		for(var x in me.objects)
 			if(me.objects[x].name==n) return me.objects[x];
+	};
+
+	this.addThing = function(o) {
+		o.o=o.o||{};
+		if(o.o.noIE&&isIE) return null;
+		var type,name;
+		for(var x in o){type=x,name=o[x];break;}
+		if(data.prototypes&&/^\$/.test(name)) {
+			name=name.substr(1);
+			o.o=$.extend(o.o,data.prototypes[name],true);
+			name=name.toLowerCase();
+		}
+		if(o.o.name) name = o.o.name;
+		if(o.o.img) imgNum++;
+		var cons = Decor.Things[type];
+		if(!cons) return console.error('Object type '+type+' not found');
+
+		var t = new cons(me,name,o.o=getAttr(o.o));
+		t.name = name;
+		t.attr = o.o;
+
+		//Put in right place
+		for(var i in me.objects)
+			if(o.o.pos[2]<=me.objects[i].attr.pos[2])
+				return me.objects.splice(i,0,t);
+
+		//Otherwise just add to end
+		me.objects.push(t);
+	};
+
+	this.placeThing = function(thing) {
+		if(!thing.$cnt) return console.warn('Trying to place thing without container');
+		setTimeout(function(){
+			var index = me.objects.indexOf(thing);
+			if(index<0) return console.warn('Trying to place object not in scene');
+			for(var i=index+1;i<me.objects.length;i++)
+				if(me.objects[i].$cnt && me.objects[i].$cnt.parent()[0] == me.$[0]) {
+					thing.$cnt.insertBefore(me.objects[i].$cnt);
+					break;
+				}
+
+			if(thing.$cnt.parent()[0] != me.$[0])
+				thing.$cnt.appendTo(me.$);
+		});
 	};
 
 	this.show = function(){
@@ -769,7 +787,7 @@ Decor.Things.Thing = function(scene,name,o){
 		me.rheight = o.px?o.px[1]/scene.height:o.dims[1];
 	};
 
-	this.show = function(){$cnt.appendTo(scene.$)};
+	this.show = function(){scene.placeThing(me)};
 	this.hide = function(){$cnt.remove()};
 	this.destroy = function(){$cnt.remove()};
 
@@ -817,7 +835,7 @@ Decor.Things.ImageContain = function(scene,name,a) {
 
 	var me = this
 		, w = a.px?a.px[0]+'px':a.dims[0]*100+'%'
-		, $cnt = $('<'+(a.tagName||'thing')+' class="thing">').css('width',w).appendTo(scene.$)
+		, $cnt = $('<'+(a.tagName||'thing')+' class="thing">').css('width',w)
 		;
 
 	this.attr = a;
@@ -879,6 +897,8 @@ Decor.Things.ImageContain = function(scene,name,a) {
 
 	this.destroy = function(){$cnt.remove()};
 
+	scene.placeThing(this);
+
 };
 
 Decor.Things.Image = function(scene,name,a){ // :: ImageContain
@@ -918,24 +938,23 @@ Decor.Things.ImageBG = function(scene,name,o){ // :: Static
 
 Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
 	scene.imageLoaded();
-	for(var i=0;i<a.repeat;i++) {
-		scene.addLoadImage();
-		scene.objects.push(new Decor.Things.Image(scene,name,{
+	for(var i=0;i<a.repeat;i++) scene.addThing({
+		Image: name, o: $.extend(a,{
 			img: a.img,
 			width: a.width,
 			pos: [a.pos[0]+i*a.width,a.pos[1],a.pos[2]]
-		}));
-	}
+		})
+	});
 };
 
 Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
-	for(var i=0;i<a.repeat;i++) {
-		scene.objects.push(new Decor.Things.Thing(scene,name,{
+	for(var i=0;i<a.repeat;i++) scene.addThing({
+		Thing: name, o: $.extend(a,{
 			dims: a.dims,
 			px: a.px,
 			pos: [a.pos[0]+i*a.trans[0],a.pos[1]+i*a.trans[1],a.pos[2]-i*a.trans[2]]
-		}));
-	}
+		})
+	});
 };
 
 Decor.Things.Overlay = function(scene,name,a){

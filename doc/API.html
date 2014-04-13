@@ -51,7 +51,7 @@ dl > dd {
     	<dd>The scene width relative to the viewport width. Default value: 1.</dd>
     	<dt>height</dt>
     	<dd>The scene height relative to the viewport height. Default value: 1.</dd>
-      <dt>objects</dt>
+      <dt id="declarations">objects</dt>
       <dd>Array of object declarations. The first property is special. Its name is the <a href="#type">type</a> and its value is the object name. The second property should be the <code>o</code> property, which is an declaration object with more properties, specific to the type of the object.</dd>
 		  <dt>prototypes</dt>
 		  <dd>Map of prototypes, indexed by name. When an object name starts with a <code>$</code>, it will inherit the properties from the prototype with that name (without the <code>$</code>).</dd>
@@ -75,6 +75,10 @@ dl > dd {
   </dd>
   <dt>getThing(name)</dt>
   <dd>Returns the object with the given name.</dd>
+  <dt>addThing(declaration)</dt>
+  <dd>Add a new object to the scene using the declaration specified <a href="#declarations">above</a>.</dd>
+  <dt>placeThing(thing)</dt>
+  <dd>Places a scene object into the scene DOM at the right z-coordinate order.</dd>
   <dt>camera</dt>
   <dd>Get the camera object for this scene.</dd>
   <dt>scene-resize</dt>
