@@ -255,6 +255,7 @@ Decor.Scene = function(name,data){
 				o.o=$.extend(o.o,data.prototypes[name],true);
 				name=name.toLowerCase();
 			}
+			if(o.o.name) name = o.o.name;
 			if(o.o.img) imgNum++;
 			var cons = Decor.Things[type];
 			if(!cons) console.error('Object type '+type+' not found');
