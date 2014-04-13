@@ -317,13 +317,24 @@ Decor.Scene = function(name,data){
 		t.name = name;
 		t.attr = o.o;
 
-		//Put in right place
-		for(var i in me.objects)
-			if(o.o.pos[2]<=me.objects[i].attr.pos[2])
-				return me.objects.splice(i,0,t)&&t;
+		this.sortThing(t);
+		return t;
+	};
 
-		//Otherwise just add to end
-		return me.objects.push(t)&&t;
+	this.sortThing = function(thing) {
+		var index = me.objects.indexOf(thing);
+		if(index>=0) me.objects.splice(index,1);
+
+		var newidx = me.objects.length;
+		for(var i in me.objects)
+			if(thing.attr.pos[2]<=me.objects[i].attr.pos[2]) {
+				newidx = i;
+				break;
+			}
+
+		me.objects.splice(newidx,0,thing);
+
+		return newidx;
 	};
 
 	this.placeThing = function(thing) {
@@ -493,7 +504,11 @@ Decor.Object3D = function(scene,$el,o) {
 	this.setPosition = function(coo) {
 		o.pos[0]=coo[0];
 		o.pos[1]=coo[1];
-		o.pos[2]=coo[2];
+		if(o.pos[2]!=coo[2]) {
+			o.pos[2]=coo[2];
+			if(scene.objects.indexOf(me) != scene.sortThing(me))
+				scene.placeThing(me);
+		}
 		me.reset().place();
 	};
 
