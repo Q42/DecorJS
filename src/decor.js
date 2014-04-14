@@ -357,6 +357,7 @@ Decor.Scene = function(name,data){
 		if(shown) return;
 		if(!inited) return init();
 		else resize();
+		if(Decor.currentScene) Decor.currentScene.hide();
 		Decor.currentScene = this;
 		localStorage.setItem('currentScene',name);
 		me.$.show().addClass('placed');
