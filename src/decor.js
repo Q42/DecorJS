@@ -506,7 +506,7 @@ Decor.Object3D = function(scene,$el,o) {
 		o.pos[1]=coo[1];
 		if(o.pos[2]!=coo[2]) {
 			o.pos[2]=coo[2];
-			scene.sortThing(me,true);
+			scene.sortThing(me,me.$cnt&&me.$cnt.parent()[0]==scene.$[0]);
 		}
 		me.reset().place();
 	};
