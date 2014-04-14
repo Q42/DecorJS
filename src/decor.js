@@ -632,7 +632,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 	};
 
 	this.getPosition = function(nocenter){
-		return [xyz[0]+rel[0],-(xyz[1]+rel[1]),xyz[2]+rel[2]];
+		return [xyz[0]+rel[0],xyz[1]+rel[1],xyz[2]+rel[2]];
 	};
 
 	this.getElementPosition = function(){
