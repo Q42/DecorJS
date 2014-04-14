@@ -69,29 +69,26 @@ if(!window.$) {
 
 }
 
-if(!$.browser) {
-	$.browser = new function(){
-		var ualc = navigator.userAgent.toLowerCase();
+if(!$.browser) $.browser = new function(){
+	var ualc = navigator.userAgent.toLowerCase();
 
-		this.webkit = /applewebkit/.test(ualc);
-		this.firefox = /firefox/.test(ualc);
-		this.safari = /safari/.test(ualc) && !/chrome/.test(ualc);
-		this.ie = /msie/.test(ualc) || /trident/.test(ualc);
-		this.iemobile = /iemobile/.test(ualc);
-		this.iOS = /ipad|iphone|ipod/.test(ualc);
-		this.android = /android/.test(ualc);
-		this.mobile = this.iOS || this.android || this.iemobile;
-		this.unknown = !this.webkit&&!this.firefox&&!this.ie&&!this.iOS&&!this.android;
+	this.webkit = /applewebkit/.test(ualc);
+	this.firefox = /firefox/.test(ualc);
+	this.safari = /safari/.test(ualc) && !/chrome/.test(ualc);
+	this.ie = /msie/.test(ualc) || /trident/.test(ualc);
+	this.iemobile = /iemobile/.test(ualc);
+	this.iOS = /ipad|iphone|ipod/.test(ualc);
+	this.android = /android/.test(ualc);
+	this.mobile = this.iOS || this.android || this.iemobile;
+	this.unknown = !this.webkit&&!this.firefox&&!this.ie&&!this.iOS&&!this.android;
 
-		this.version = parseFloat(this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
-			: this.firefox?ualc.match(/firefox\/(\d+)\./)[1]
-			: this.ie?ualc.match(/(msie\s|rv\:)(\d+)\./)[2]
-			: -1);
+	this.version = parseFloat(this.webkit?ualc.match(/applewebkit\/(\d+)\./)[1]
+		: this.firefox?ualc.match(/firefox\/(\d+)\./)[1]
+		: this.ie?ualc.match(/(msie\s|rv\:)(\d+)\./)[2]
+		: -1);
 
-		this.retina = (window.devicePixelRatio && window.devicePixelRatio >= 2) && this.iOS;
-	};
-
-}
+	this.retina = (window.devicePixelRatio && window.devicePixelRatio >= 2) && this.iOS;
+};
 
 
 //Main
@@ -321,7 +318,7 @@ Decor.Scene = function(name,data){
 		return t;
 	};
 
-	this.sortThing = function(thing) {
+	this.sortThing = function(thing, autoPlace) {
 		var index = me.objects.indexOf(thing);
 		if(index>=0) me.objects.splice(index,1);
 
@@ -333,6 +330,9 @@ Decor.Scene = function(name,data){
 			}
 
 		me.objects.splice(newidx,0,thing);
+
+		if(autoPlace && ((index>=0 && newidx != index) || index<0))
+			me.placeThing(thing);
 
 		return newidx;
 	};
@@ -506,8 +506,7 @@ Decor.Object3D = function(scene,$el,o) {
 		o.pos[1]=coo[1];
 		if(o.pos[2]!=coo[2]) {
 			o.pos[2]=coo[2];
-			if(scene.objects.indexOf(me) != scene.sortThing(me))
-				scene.placeThing(me);
+			scene.sortThing(me,true);
 		}
 		me.reset().place();
 	};
