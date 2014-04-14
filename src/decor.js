@@ -380,13 +380,13 @@ Decor.Scene = function(name,data){
 		if(!shown) return cb&&cb();
 		shown = false;
 		me.active = false;
-		me.$.removeClass('shown');
+		me.$.removeClass('shown').addClass('hiding');
 		$(document.body).removeClass('scene-shown');
 		$window.add(me.$).trigger('scene-hide',name);
 		removeEventListener('resize',resize);
 		if(data.audio) Decor.Audio.stop(data.audio.src);
 		setTimeout(function(){
-			me.$.removeClass('placed');
+			me.$.removeClass('placed hiding');
 			if(cb) cb();
 		},data.hideDuration||0);
 	};
