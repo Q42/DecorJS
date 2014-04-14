@@ -357,10 +357,9 @@ Decor.Scene = function(name,data){
 		if(shown) return;
 		if(!inited) return init();
 		else resize();
-		if(Decor.currentScene) Decor.delete(Decor.currentScene.name);
 		Decor.currentScene = this;
 		localStorage.setItem('currentScene',name);
-		me.$.addClass('placed');
+		me.$.show().addClass('placed');
 		shown = true;
 		me.active = true;
 		addEventListener('resize',resize);
@@ -386,7 +385,7 @@ Decor.Scene = function(name,data){
 		removeEventListener('resize',resize);
 		if(data.audio) Decor.Audio.stop(data.audio.src);
 		setTimeout(function(){
-			me.$.removeClass('placed hiding');
+			me.$.removeClass('placed hiding').hide();
 			if(cb) cb();
 		},data.hideDuration||0);
 	};
