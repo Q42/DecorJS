@@ -907,7 +907,7 @@ Decor.Things.ImageContain = function(scene,name,o) {
 		scene.imageLoaded(name);
 	};
 
-	this.show = function(){scene.placeThing(this)};
+	this.show = function(){scene.placeThing(me)};
 	this.hide = this.destroy = function(){$cnt.remove()};
 
 	if(!o.noshow) this.show();
