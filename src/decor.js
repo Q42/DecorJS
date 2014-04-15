@@ -970,7 +970,7 @@ Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
 	});
 };
 
-Decor.Things.Overlay = function(scene,name,a){
+Decor.Things.Overlay = function(scene,name,o){
 	var me = this
 		, $s = $(o.selector)
 		;
