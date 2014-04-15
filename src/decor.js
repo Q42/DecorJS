@@ -982,12 +982,18 @@ Decor.Things.Overlay = function(scene,name,a){
 		.appendTo(this.$cnt);
 
 	function resize(){
-		me.$cnt.css({
-			width: a.px?a.px[0]:Math.round(scene.width*a.dims[0])+'px',
-			height: a.px?a.px[1]:Math.round(scene.height*a.dims[1])+'px',
+		var css = {
 			left: scene.$[0].offsetLeft+Math.round(scene.width*a.pos[0])+'px',
 			top: scene.$[0].offsetTop+Math.round(scene.height*a.pos[1])+'px'
-		})
+		};
+
+		if(a.dims[0]>0||a.px&&a.px[0]>0)
+			css.width = a.px?a.px[0]:Math.round(scene.width*a.dims[0])+'px';
+
+		if(a.dims[1]>0||a.px&&a.px[1]>0)
+			css.height = a.px?a.px[1]:Math.round(scene.height*a.dims[1])+'px';
+
+		me.$cnt.css(css)
 	};
 
 	this.destroy = function(){me.$cnt.remove()};
