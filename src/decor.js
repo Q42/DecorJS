@@ -972,32 +972,32 @@ Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
 
 Decor.Things.Overlay = function(scene,name,a){
 	var me = this
-		, $s = $(a.selector)
+		, $s = $(o.selector)
 		;
 
-	this.$cnt = $('<div class="overlay '+name+(a.class?' '+a.class:'')+'">')
-		.appendTo(document.body);
-
-	this.$ = ($s[0]?$s:$('<div>'))
-		.appendTo(this.$cnt);
+	this.$cnt = $('<div class="overlay '+name+(o.class?' '+o.class:'')+'">');
+	this.$ = ($s[0]?$s:$('<div>')).appendTo(this.$cnt);
 
 	function resize(){
 		var css = {
-			left: scene.$[0].offsetLeft+Math.round(scene.width*a.pos[0])+'px',
-			top: scene.$[0].offsetTop+Math.round(scene.height*a.pos[1])+'px'
+			left: scene.$[0].offsetLeft+Math.round(scene.width*o.pos[0])+'px',
+			top: scene.$[0].offsetTop+Math.round(scene.height*o.pos[1])+'px'
 		};
 
-		if(a.dims[0]>0||a.px&&a.px[0]>0)
-			css.width = a.px?a.px[0]:Math.round(scene.width*a.dims[0])+'px';
+		if(o.dims[0]>0||o.px&&o.px[0]>0)
+			css.width = o.px?o.px[0]:Math.round(scene.width*o.dims[0])+'px';
 
-		if(a.dims[1]>0||a.px&&a.px[1]>0)
-			css.height = a.px?a.px[1]:Math.round(scene.height*a.dims[1])+'px';
+		if(o.dims[1]>0||o.px&&o.px[1]>0)
+			css.height = o.px?o.px[1]:Math.round(scene.height*o.dims[1])+'px';
 
 		me.$cnt.css(css)
 	};
 
-	this.destroy = function(){me.$cnt.remove()};
+	this.show = function(){me.$cnt.appendTo(document.body)};
+	this.hide = this.destroy = function(){me.$cnt.remove()};
 
 	scene.$.on('scene-show scene-resize',resize);
+
+	if(!o.noshow) this.show();
 
 };
