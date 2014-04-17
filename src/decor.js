@@ -972,7 +972,7 @@ Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
 
 Decor.Things.Overlay = function(scene,name,o){
 	var me = this
-		, $s = $(o.selector)
+		, $s = $('body>'+o.selector+',body>*:not(scene) '+o.selector).hide().clone().show()
 		;
 
 	this.$cnt = $('<div class="overlay '+name+(o.class?' '+o.class:'')+'">');
