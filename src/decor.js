@@ -162,14 +162,14 @@ Decor = new function(){
 		else location.reload();
 	};
 
-	this.goto = function(n){return function(e){
+	this.goto = function(n,del){return function(e){
 		var cs = Decor.currentScene;
 		if(cs&&cs.name==n) return;
 		if(e&&e.target){e.stopPropagation();e.preventDefault()}
 		var data = Decor.Scenes[n];
 		if(!data) return console.error('Scene ['+n+'] not found');
 		function load(){(_scenes[n]||(_scenes[n]=new Decor.Scene(n,data))).show()};
-		if(cs) cs.hide(load);
+		if(cs) cs[del?'delete':'hide'](load);
 		else load();
 	}};
 

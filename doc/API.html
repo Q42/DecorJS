@@ -28,8 +28,8 @@ dl > dd {
   <dd>Map of Thing declarations, indexed by name</dd>
   <dt>currentScene</dt>
   <dd>The currently visible Scene object</dd>
-  <dt>goto(name)</dt>
-  <dd>Returns a handler function that hides the current scene and shows the scene with the given name, creating a new instance if needed.</dd>
+  <dt>goto(name, delete)</dt>
+  <dd>Returns a handler function that hides the current scene and shows the scene with the given name, creating a new instance if needed. If <code>delete</code> is <code>true</code>, the previously active scene will be deleted instead of hidden.</dd>
   <dt>resetTo(name)</dt>
   <dd>Returns a handler function that resets to the scene with the given name, by deleting all the scene instances.</dd>
   <dt>reloadScene()</dt>
