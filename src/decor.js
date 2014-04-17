@@ -188,7 +188,6 @@ Decor.Scene = function(name,data){
 	var me = this
 		, format = data.aspectRatio||16/9
 		, res = data.res || [innerWidth,innerHeight*format]
-		, shown = false
 		, inited = false
 		, imgNum = 0
 		, oImgNum = 0
@@ -205,6 +204,7 @@ Decor.Scene = function(name,data){
 	this.height = res[1];
 	this.scale = 1;
 	this.objects = [];
+	this.shown = false;
 	this.collisionObjects = [];
 	this.margin = [0,0];
 	this.camera = new Decor.Camera(this);
@@ -354,14 +354,14 @@ Decor.Scene = function(name,data){
 	};
 
 	this.show = function(){
-		if(shown) return;
+		if(me.shown) return;
 		if(!inited) return init();
 		else resize();
 		if(Decor.currentScene) Decor.currentScene.hide();
 		Decor.currentScene = this;
 		localStorage.setItem('currentScene',name);
 		me.$.show().addClass('placed');
-		shown = true;
+		me.shown = true;
 		me.active = true;
 		addEventListener('resize',resize);
 		if(data.audio) Decor.Audio.play(data.audio.src,data.audio);
@@ -377,8 +377,8 @@ Decor.Scene = function(name,data){
 	};
 
 	this.hide = function(cb,dur){
-		if(!shown) return cb&&cb();
-		shown = false;
+		if(!me.shown) return cb&&cb();
+		me.shown = false;
 		me.active = false;
 		me.$.removeClass('shown').addClass('hiding');
 		$(document.body).removeClass('scene-shown');
@@ -402,7 +402,7 @@ Decor.Scene = function(name,data){
 	};
 
 	this.delete = function(cb){
-		if(!shown) del(cb);
+		if(!me.shown) del(cb);
 		else me.hide(function(){del(cb)});
 	};
 
@@ -838,8 +838,10 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 		me.$cnt.css('font-size',o.relativeFontSize*scene.height+'px');
 	};
 
-	if(o.relativeFontSize)
+	if(o.relativeFontSize) {
 		scene.$.on('scene-show scene-resize',resize);
+		if(scene.shown) resize();
+	}
 
 };
 
@@ -997,6 +999,7 @@ Decor.Things.Overlay = function(scene,name,o){
 	this.hide = this.destroy = function(){me.$cnt.remove()};
 
 	scene.$.on('scene-show scene-resize',resize);
+	if(scene.shown) resize();
 
 	if(!o.noshow) this.show();
 
