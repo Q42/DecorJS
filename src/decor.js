@@ -34,7 +34,7 @@ if(!window.$) {
 	function _$(sel,par){ var _=_getEls(sel,par); for(var x in _) this[x]=_[x]; if(!this.length) this.length = _.length; };
 	_$.prototype = {
 		each        : function(f)    { for(var i=0;i<this.length;i++) f.call(this[i]); return this },
-		remove      : function()     { this.each(function(){this.parentNode.removeChild(this)}); return this },
+		remove      : function()     { this.each(function(){if(this.parentNode) this.parentNode.removeChild(this)}); return this },
 		clone       : function()     { var r = [];this.each(function(){r.push(this.cloneNode(true))});return $(r) },
 		replaceWith : function(el)   { var me = this; if(me[0]) { if(el.each) el.each(function(){ me[0].parentNode.insertBefore(this,me[0]); }); else me[0].parentNode.insertBefore(el,me[0]); me.remove(); } return this },
 		insertBefore: function(el)   { el=el.length?el[0]:el; this.each(function(){el.parentNode.insertBefore(this,el)})},
