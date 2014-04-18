@@ -43,6 +43,7 @@ if(!window.$) {
 		parent      : function()     { var r = [];this.each(function(){if(r.indexOf(this.parentNode)<0) r.push(this.parentNode)}); return new _$(r) },
 		closest     : function(sel)  { var r = [];this.each(function(){var pn = this; while(pn=pn.parentNode) if($(pn).filter(sel)[0]) return r.indexOf(pn)<0&&r.push(pn)}); return new _$(r) },
 		children    : function(sel)  { sel = sel || '*';var ce = [];this.each(function(){var e = this.querySelectorAll(sel);for(var i=0;i<e.length;i++) if(e[i].parentNode==this) ce.push(e[i]);}); return new _$(ce) },
+		siblings    : function(sel)  { var r = [], me = this; this.parent().children().filter(sel).each(function(){ if(!me.has(this)&&r.indexOf(this)<0) r.push(this) }); return new _$(r) },
 		find        : function(sel)  { return new _$(sel,this[0]) },
 		filter      : function(s,iv) { s = $('<div>').append(this.clone(true)).children(s); return new _$([].filter.call(this,function(n){ for(var i=0;i<s.length;i++) if(s[i]._originalNode==n) return !iv; return !!iv })) },
 		not         : function(sel)  { return this.filter(sel,true) },
