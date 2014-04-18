@@ -35,7 +35,7 @@ if(!window.$) {
 	_$.prototype = {
 		each        : function(f)    { for(var i=0;i<this.length;i++) f.call(this[i]); return this },
 		remove      : function()     { this.each(function(){if(this.parentNode) this.parentNode.removeChild(this)}); return this },
-		clone       : function()     { var r = [];this.each(function(){var cl=this.cloneNode(true);cl._originalNode=this;r.push(cl)});return $(r) },
+		clone       : function(noc)  { var r = [];this.each(function(){var cl=this.cloneNode(!noc);cl._originalNode=this;r.push(cl)});return $(r) },
 		replaceWith : function(el)   { var me = this; if(me[0]) { if(el.each) el.each(function(){ me[0].parentNode.insertBefore(this,me[0]); }); else me[0].parentNode.insertBefore(el,me[0]); me.remove(); } return this },
 		insertBefore: function(el)   { el=el.length?el[0]:el; this.each(function(){el.parentNode.insertBefore(this,el)})},
 		appendTo    : function(el)   { el=el.length?el[0]:el; this.each(function(){el.appendChild(this)}); return this },
@@ -44,7 +44,7 @@ if(!window.$) {
 		closest     : function(sel)  { var r = [];this.each(function(){var pn = this; while(pn=pn.parentNode) if($(pn).filter(sel)[0]) return r.indexOf(pn)<0&&r.push(pn)}); return new _$(r) },
 		children    : function(sel)  { sel = sel || '*';var ce = [];this.each(function(){var e = this.querySelectorAll(sel);for(var i=0;i<e.length;i++) if(e[i].parentNode==this) ce.push(e[i]);}); return new _$(ce) },
 		find        : function(sel)  { return new _$(sel,this[0]) },
-		filter      : function(s,iv) { s = $('<div>').append(this.clone()).children(s); return new _$([].filter.call(this,function(n){ for(var i=0;i<s.length;i++) if(s[i]._originalNode==n) return !iv; return !!iv })) },
+		filter      : function(s,iv) { s = $('<div>').append(this.clone(true)).children(s); return new _$([].filter.call(this,function(n){ for(var i=0;i<s.length;i++) if(s[i]._originalNode==n) return !iv; return !!iv })) },
 		not         : function(sel)  { return this.filter(sel,true) },
 		eq          : function(i)    { return new _$(this[i]) },
 		has         : function(el)   { for(var i=0;i<this.length;i++) if(this[i]==el) return true },
