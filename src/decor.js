@@ -602,7 +602,6 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 
 	var me = this
 		, scene = thing.scene
-		, cpos = scene.camera.position
 		, rel = [0,0,0]
 		, size = [thing.rwidth,thing.rheight]
 		;
@@ -634,8 +633,9 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 
 	this.getCSS = function(noscr){
 		var co = thing.scene.camera.offset
-			, tx = thing.attr.relative?0:cpos[0]
-			, ty = thing.attr.relative?0:co[1]-(scene.data.height-1)-cpos[1]
+			, cp = thing.scene.camera.position
+			, tx = thing.attr.relative?0:cp[0]
+			, ty = thing.attr.relative?0:co[1]-(scene.data.height-1)-cp[1]
 			, fact = [scene.width,scene.height]
 			, att = []
 			, sd = .3
@@ -646,7 +646,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		var coo = [
 			Math.round(fact[0]*(xyz[0]+rel[0]+co[0]-tx)),
 			-Math.round(fact[1]*(xyz[1]+rel[1]+ty)),
-			sd*(xyz[2]+rel[2]+cpos[2])+co[2]
+			sd*(xyz[2]+rel[2]+cp[2])+co[2]
 		];
 
 		att.push('translate3d('+coo.join('px,')+'px)');
@@ -676,7 +676,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 
 	this.getX = function(){return xyz[0]+rel[0]};
 	this.getY = function(){return (xyz[1]+rel[1])};
-	this.getZ = function(){return xyz[2]+rel[2]+cpos[2]};
+	this.getZ = function(){return xyz[2]+rel[2]};
 
 	this.translate = function(coo,reset) {
 		if(reset) rel = [0,0,0];
