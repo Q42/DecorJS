@@ -93,6 +93,13 @@ if(!$.browser) $.browser = new function(){
 	this.retina = (window.devicePixelRatio && window.devicePixelRatio >= 2) && this.iOS;
 };
 
+if(!$.events) $.events = {
+	getEvent: function(e) { return e.changedTouches&&e.changedTouches[0]||e.touches&&e.touches[0]||e },
+	getPageX: function(e) { return $.events.getEvent(e).pageX },
+	getPageY: function(e) { return $.events.getEvent(e).pageY },
+	getClientX: function(e) { return $.events.getEvent(e).clientX },
+	getClientY: function(e) { return $.events.getEvent(e).clientY }
+};
 
 //Main
 Decor = new function(){
