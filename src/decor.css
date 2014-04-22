@@ -81,6 +81,7 @@ scene a.thing>img {
 
 /* Things.Cube */
 .cube { background: #bbb; }
+.cube>.side.front { background: inherit; }
 .cube>.side { background: #aaa; }
 .cube>.side.bottom { background: #999; }
 .cube>.side.top { background: #ccc; }
@@ -88,6 +89,8 @@ scene a.thing>img {
 	position: absolute;
 	width: 100%;
 	height: 100%;
+}
+.cube>.side:not(.front) {
 	-webkit-transform-origin: left top;
 	-webkit-transform: rotateY(90deg);
 	transform-origin: left top;

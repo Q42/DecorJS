@@ -1007,10 +1007,11 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 	var me = this
 		, sides = {
 			back: 1,
+			bottom: 1,
 			top: 1,
 			right: 1,
-			bottom: 1,
-			left: 1
+			left: 1,
+			front: 1
 		}
 		;
 
@@ -1025,7 +1026,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 		$('<div class="side '+x+'">').appendTo(this.$)[0].sideType = x;
 
 	function resize(){
-		me.$.children('.side').each(function(){
+		me.$.children('.side:not(.front)').each(function(){
 			var $t = $(this)
 				, depth = scene.width*scene.height/scene.width*a.dims[2]
 				;
