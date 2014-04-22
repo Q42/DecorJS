@@ -1003,6 +1003,47 @@ Decor.Things.ThingRep = function(scene,name,a){ // [:: Thing]
 	});
 };
 
+Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
+	var me = this
+		, sides = {
+			back: 1,
+			top: 1,
+			right: 1,
+			bottom: 1,
+			left: 1,
+			front: 1
+		}
+		;
+
+	if(a.sides) for(var x in a.sides) sides[x] = a.sides[x];
+	a.dims[2]=a.dims[2]||a.dims[0];
+	a.class=(a.class||'')+' cube';
+
+	Decor.Things.Thing.call(this,scene,name,a);
+	this.$cnt.addClass('preserve-3d');
+
+	for(var x in sides) if(sides[x])
+		$('<div class="side '+x+'">').appendTo(this.$)[0].sideType = x;
+
+	function resize(){
+		me.$.children('.side').each(function(){
+			var $t = $(this)
+				, depth = scene.height*scene.height/scene.width*a.dims[2]
+				;
+
+			if(this.sideType=='back')
+				$t.css(c3.transform,'translate3d(0,0,-'+depth+'px');
+			else $t.css(
+				this.sideType=='bottom'||this.sideType=='top'?'height':'width',
+				depth+'px'
+			);
+		});
+	};
+
+	scene.$.on('scene-resize',resize);
+	resize();
+};
+
 Decor.Things.Overlay = function(scene,name,o){
 	var me = this
 		, $s = $('body>'+o.selector+',body>*:not(scene) '+o.selector).hide().clone().show()

@@ -78,3 +78,28 @@ scene a.thing>img {
 	margin: 0;
 	padding: 0;
 }
+
+/* Things.Cube */
+.cube { background: #bbb; }
+.cube>.side { background: #aaa; }
+.cube>.side.bottom { background: #999; }
+.cube>.side.top { background: #ccc; }
+.cube>.side {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	-webkit-transform-origin: left top;
+	-webkit-transform: rotateY(90deg);
+	transform-origin: left top;
+	transform: rotateY(90deg);
+}
+.cube>.side.bottom,
+.cube>.side.top {
+	bottom: 0;
+	-webkit-transform-origin: left bottom;
+	-webkit-transform: rotateX(90deg);
+	transform-origin: left bottom;
+	transform: rotateX(90deg);
+}
+.cube>.side.top { bottom: 100%; }
+.cube>.side.right { left: 100%; }
