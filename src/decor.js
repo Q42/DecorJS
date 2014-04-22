@@ -242,7 +242,7 @@ Decor.Scene = function(name,data){
 		me.$[0].scrollLeft = 0;
 		resize();
 		for(var i=0;i<data.objects.length;i++)
-			me.addThing(data.objects[i]);
+			me.addThing(data.objects[i], true);
 		setTimeout(function(){
 			if(data.oninit) data.oninit(me);
 			if(!imgNum) loaded();
@@ -300,7 +300,7 @@ Decor.Scene = function(name,data){
 			if(me.objects[x].name==n) return me.objects[x];
 	};
 
-	this.addThing = function(o) {
+	this.addThing = function(o, noAdd) {
 		o.o=o.o||{};
 		if(o.o.noIE&&isIE) return null;
 		var type,name;
@@ -318,6 +318,8 @@ Decor.Scene = function(name,data){
 		var t = new cons(me,name,o.o=getAttr(o.o));
 		t.name = name;
 		t.attr = o.o;
+
+		if(!noAdd) data.objects.push(o);
 
 		this.sortThing(t);
 		return t;
