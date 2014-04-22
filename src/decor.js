@@ -358,6 +358,12 @@ Decor.Scene = function(name,data){
 		});
 	};
 
+	this.getCooFromPx = function(x,y) {
+		var perc = [(x-me.margin[0])/me.width,(y-me.margin[1])/me.height];
+		if(perc[0]<0||perc[1]<0||perc[0]>1||perc[1]>1) return;
+		return [perc[0]+me.camera.position[0],perc[1]+me.camera.position[1],me.camera.position[2]];
+	};
+
 	this.show = function(){
 		if(me.shown) return;
 		if(!inited) return init();
@@ -418,13 +424,21 @@ Decor.Camera = function(scene){
 		, oY = scene.data.height-1
 		, limit = scene.data.limitCamera
 		, startPos = scene.data.cameraPosition
-		, ppos = [0,0,0]+''
+		, position = [0,0,0]
+		, ppos = position+''
 		, aniTo = null
 		, r = [0,0,0]
 		;
 
 	this.offset = [0,oY,0];
-	this.position = [0,0,0];
+
+	Object.defineProperty(this, 'position', {
+		get: function(){ return [
+			position[0]+(scene.$[0].scrollLeft/scene.$[0].scrollWidth)*scene.data.width,
+			position[1]+(scene.$[0].scrollTop/scene.$[0].scrollHeight)*scene.data.height,
+			position[2]
+		]}
+	});
 
 	function insideView(cb){
 		if(!cb instanceof Function) return;
@@ -473,9 +487,9 @@ Decor.Camera = function(scene){
 		var cp = c+'';
 		if(ppos==cp) return;
 		ppos=cp;
-		me.position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
-		me.position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
-		me.position[2] = c[2];
+		position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
+		position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
+		position[2] = c[2];
 		insideView(function(){
 			this.place(reset)
 		});

@@ -83,6 +83,8 @@ dl > dd {
   <dd>Reorders or places the <code>thing</code> in the scene object array ordered by z-coordinate. If <code>autoPlace</code> is true, the thing is automatically placed in the DOM too. Returns the new array index.</dd>
   <dt>placeThing(thing)</dt>
   <dd>Places a scene object into the scene DOM at the right z-coordinate order.</dd>
+  <dt>getCooFromPx(x,y)</dt>
+  <dd>Get a scene coordinate based on window X and Y pixel position. Returns <code>null</code> if the given coordinate is outside the scene.</dd>
   <dt>shown</dt>
   <dd>Boolean to indicate whether the scene is currently shown or not</dd>
   <dt>camera</dt>
