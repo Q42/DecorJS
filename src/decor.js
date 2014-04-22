@@ -361,7 +361,7 @@ Decor.Scene = function(name,data){
 	this.getCooFromPx = function(x,y) {
 		var perc = [(x-me.margin[0])/me.width,(y-me.margin[1])/me.height];
 		if(perc[0]<0||perc[1]<0||perc[0]>1||perc[1]>1) return;
-		return [perc[0]+me.camera.position[0],perc[1]+me.camera.position[1],me.camera.position[2]];
+		return [perc[0]+me.camera.position[0],1-perc[1]+me.camera.position[1],me.camera.position[2]];
 	};
 
 	this.show = function(){
