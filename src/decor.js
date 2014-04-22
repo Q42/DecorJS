@@ -218,6 +218,8 @@ Decor.Scene = function(name,data){
 		.css({width:res[0]+'px',height:res[1]+'px'})
 		.appendTo(document.body);
 
+	if(data.class) this.$.addClass(data.class);
+
 	if(data.scrolling){
 		if(data.width>1)
 			$('<div class="canvas">').css('width',data.width*100+'%').appendTo(this.$);
