@@ -128,6 +128,7 @@ Decor = new function(){
 
 	c3p = isWebkit||isIOS?'-webkit-':'';
 	c3 = {
+		perspective: c3p+'perspective',
 		transform: c3p+'transform',
 		transition: c3p+'transition',
 		transitionD: c3p+'transition-duration',
@@ -284,6 +285,8 @@ Decor.Scene = function(name,data){
 			css.width = (data.fullWidth?innerWidth:me.width)+'px';
 			css.height = (me.height = Math.round(size[1]))+'px';
 		}
+
+		css[c3.perspective] = (data.fixedPerspective||me.height)+'px';
 
 		me.$.css(css).trigger('scene-resize');
 	};

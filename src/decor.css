@@ -13,9 +13,7 @@ scene {
 	position: relative;
 	-webkit-transform: translate3d(0,0,0);
 	-webkit-perspective-origin: 50% 50%;
-	-webkit-perspective: 200px;
 	perspective-origin: 50% 50%;
-	perspective: 200px;
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
 	overflow: hidden;
