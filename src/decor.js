@@ -286,7 +286,7 @@ Decor.Scene = function(name,data){
 			css.height = (me.height = Math.round(size[1]))+'px';
 		}
 
-		css[c3.perspective] = (data.fixedPerspective||me.height)+'px';
+		css[c3.perspective] = (data.fixedPerspective||me.width)+'px';
 
 		me.$.css(css).trigger('scene-resize');
 	};
@@ -641,7 +641,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 			, ty = thing.attr.relative?0:co[1]-(scene.data.height-1)-cp[1]
 			, fact = [scene.width,scene.height]
 			, att = []
-			, sd = .3
+			, sd = scene.data.depthFactor||1
 			;
 
 		if(!noscr) tx-=scene.$[0].scrollLeft/scene.width;
@@ -1010,8 +1010,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 			top: 1,
 			right: 1,
 			bottom: 1,
-			left: 1,
-			front: 1
+			left: 1
 		}
 		;
 
@@ -1028,7 +1027,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 	function resize(){
 		me.$.children('.side').each(function(){
 			var $t = $(this)
-				, depth = scene.height*scene.height/scene.width*a.dims[2]
+				, depth = scene.width*scene.height/scene.width*a.dims[2]
 				;
 
 			if(this.sideType=='back')
