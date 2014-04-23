@@ -80,7 +80,6 @@ scene a.thing>img {
 }
 
 /* Things.Cube */
-scene .cube { background-color: #bbb; }
 scene .cube>.side.front { background-color: #bbb; }
 scene .cube>.side { background-color: #aaa; }
 scene .cube>.side.bottom { background-color: #999; }
