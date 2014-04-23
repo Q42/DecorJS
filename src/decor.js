@@ -1020,7 +1020,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 	a.class=(a.class||'')+' cube';
 
 	Decor.Things.Thing.call(this,scene,name,a);
-	this.$cnt.addClass('preserve-3d');
+	this.$cnt.add(this.$).addClass('preserve-3d');
 
 	for(var x in sides) if(sides[x])
 		$('<div class="side '+x+'">').appendTo(this.$)[0].sideType = x;
@@ -1032,7 +1032,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 				;
 
 			if(this.sideType=='back')
-				$t.css(c3.transform,'translate3d(0,0,-'+depth+'px');
+				$t.css(c3.transform,'rotateY(180deg) translate3d(0,0,'+depth+'px');
 			else $t.css(
 				this.sideType=='bottom'||this.sideType=='top'?'height':'width',
 				depth+'px'
