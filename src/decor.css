@@ -80,11 +80,11 @@ scene a.thing>img {
 }
 
 /* Things.Cube */
-scene .cube { background: #bbb; }
-scene .cube>.side.front { background: inherit; }
-scene .cube>.side { background: #aaa; }
-scene .cube>.side.bottom { background: #999; }
-scene .cube>.side.top { background: #ccc; }
+scene .cube { background-color: #bbb; }
+scene .cube>.side.front { background-color: #bbb; }
+scene .cube>.side { background-color: #aaa; }
+scene .cube>.side.bottom { background-color: #999; }
+scene .cube>.side.top { background-color: #ccc; }
 scene .cube>.side {
 	position: absolute;
 	width: 100%;
