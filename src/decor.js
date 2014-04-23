@@ -1,5 +1,5 @@
 /*
-** DecorJS - v0.42
+** DecorJS - v0.5
 ** https://github.com/Q42/DecorJS
 **
 ** (c) 2014 Q42, Marcel Duin <marcel@q42.nl>
