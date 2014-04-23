@@ -281,9 +281,9 @@ Decor.Scene = function(name,data){
 		if(data.fixedSize && data.res)
 			me.$.css(c3.transform,'scale('+(me.scale=size[0]/res[0])+')');
 		else {
-			me.width = Math.round(size[0]);
-			css.width = (data.fullWidth?innerWidth:me.width)+'px';
+			css.width = (me.width = Math.round(data.fullWidth?innerWidth:size[0]))+'px';
 			css.height = (me.height = Math.round(size[1]))+'px';
+			me.virtualHeight = data.fullWidth?me.width/format:me.height;
 		}
 
 		css[c3.perspective] = (data.fixedPerspective||me.width)+'px';
@@ -436,21 +436,13 @@ Decor.Camera = function(scene){
 		, oY = scene.data.height-1
 		, limit = scene.data.limitCamera
 		, startPos = scene.data.cameraPosition
-		, position = [0,0,0]
-		, ppos = position+''
+		, ppos = [0,0,0]+''
 		, aniTo = null
 		, r = [0,0,0]
 		;
 
 	this.offset = [0,oY,0];
-
-	Object.defineProperty(this, 'position', {
-		get: function(){ return [
-			position[0]+(scene.$[0].scrollLeft/scene.$[0].scrollWidth)*scene.data.width,
-			position[1]+(scene.$[0].scrollTop/scene.$[0].scrollHeight)*scene.data.height,
-			position[2]
-		]}
-	});
+	this.position = [0,0,0];
 
 	function insideView(cb){
 		if(!cb instanceof Function) return;
@@ -499,9 +491,9 @@ Decor.Camera = function(scene){
 		var cp = c+'';
 		if(ppos==cp) return;
 		ppos=cp;
-		position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
-		position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
-		position[2] = c[2];
+		me.position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
+		me.position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
+		me.position[2] = c[2];
 		insideView(function(){
 			this.place(reset)
 		});
