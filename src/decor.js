@@ -1028,7 +1028,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 	function resize(){
 		me.$.children('.side:not(.front)').each(function(){
 			var $t = $(this)
-				, depth = scene.width*scene.height/scene.width*a.dims[2]
+				, depth = Math.sqrt(Math.pow(scene.width/2,2)+Math.pow(scene.height/2,2))*a.dims[2]
 				;
 
 			if(this.sideType=='back')
