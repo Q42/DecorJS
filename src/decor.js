@@ -313,6 +313,10 @@ Decor.Scene = function(name,data){
 			if(me.objects[x].name==n) return me.objects[x];
 	};
 
+	this.getThings = function(n){
+	  return me.objects.filter(function(o) { return o.name == n });
+	};
+
 	this.addThing = function(o, noAdd) {
 		o.o=o.o||{};
 		if(o.o.noIE&&isIE) return null;
