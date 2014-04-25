@@ -374,6 +374,8 @@ Decor.Scene = function(name,data){
 
 			if(thing.$cnt.parent()[0] != me.$[0])
 				thing.$cnt.appendTo(me.$);
+
+			thing.placed = true;
 		});
 	};
 
@@ -423,8 +425,8 @@ Decor.Scene = function(name,data){
 
 	function del(cb){
 		for(var x in me.objects)
-			if(me.objects[x].destroy)
-				me.objects[x].destroy();
+			if(me.objects[x].remove)
+				me.objects[x].remove();
 		me.$.remove();
 		delete me.$;
 		me.deleted = true;
@@ -831,8 +833,15 @@ Decor.Things.Thing = function(scene,name,o){
 		me.rheight = o.px?o.px[1]/scene.height:o.dims[1];
 	};
 
-	this.show = function(){scene.placeThing(me)};
-	this.hide = this.destroy = function(){$cnt.remove()};
+	this.show = function(){
+		if(!me.placed) scene.placeThing(me);
+		else $cnt.show();
+	};
+	this.hide = function(){$cnt.hide()};
+	this.remove = function(){
+		$cnt.remove();
+		me.placed = false;
+	};
 
 	Decor.Object3D.call(this,scene,$cnt,o);
 
@@ -939,8 +948,15 @@ Decor.Things.ImageContain = function(scene,name,o) {
 		scene.imageLoaded(name);
 	};
 
-	this.show = function(){scene.placeThing(me)};
-	this.hide = this.destroy = function(){$cnt.remove()};
+	this.show = function(){
+		if(!me.placed) scene.placeThing(me);
+		else $cnt.show();
+	};
+	this.hide = function(){$cnt.hide()};
+	this.remove = function(){
+		$cnt.remove();
+		me.placed = false;
+	};
 
 	if(!o.noshow) this.show();
 
@@ -1066,8 +1082,13 @@ Decor.Things.Overlay = function(scene,name,o){
 		me.$cnt.css(css)
 	};
 
-	this.show = function(){me.$cnt.appendTo(document.body)};
-	this.hide = this.destroy = function(){me.$cnt.remove()};
+	this.show = function(){
+		if(me.$cnt[0].parentNode!=document.body)
+			me.$cnt.appendTo(document.body);
+		else me.$cnt.show();
+	};
+	this.hide = function(){me.$cnt.hide()};
+	this.remove = function(){me.$cnt.remove()};
 
 	scene.$.on('scene-show scene-resize',resize);
 	if(scene.shown) resize();
