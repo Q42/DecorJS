@@ -829,7 +829,9 @@ Decor.Things.Thing = function(scene,name,o){
 
 	if(o.textContent) this.$.text(o.textContent);
 
-	this.setDims = function(){
+	this.setDims = function(dims){
+		if(dims&&dims.length) for(var x in dims) o.dims[x] = dims[x];
+
 		var rat = o.isDepth?scene.height/1080:1;
 
 		me.$.css({
