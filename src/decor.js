@@ -283,10 +283,7 @@ Decor.Scene = function(name,data){
 		else {
 			css.width = (me.width = Math.round(data.fullWidth?innerWidth:size[0]))+'px';
 			css.height = (me.height = Math.round(size[1]))+'px';
-			me.virtualHeight = data.fullWidth?me.width/format:me.height;
 		}
-
-		css[c3.perspective] = (data.fixedPerspective||me.width)+'px';
 
 		me.$.css(css).trigger('scene-resize');
 	};

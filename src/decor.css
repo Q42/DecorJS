@@ -12,9 +12,11 @@ scene {
 	display: block;
 	position: relative;
 	-webkit-transform: translate3d(0,0,0);
+	-webkit-perspective: 800px;
 	-webkit-perspective-origin: 50% 50%;
-	perspective-origin: 50% 50%;
 	-webkit-backface-visibility: hidden;
+	perspective: 800px;
+	perspective-origin: 50% 50%;
 	backface-visibility: hidden;
 	overflow: hidden;
 }
