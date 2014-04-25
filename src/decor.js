@@ -379,6 +379,14 @@ Decor.Scene = function(name,data){
 		});
 	};
 
+	this.removeThing = function(thing) {
+		var idx = me.objects.indexOf(thing);
+		if(idx>=0) {
+			me.objects.splice(idx,1);
+			if(thing.remove) thing.remove();
+		}
+	};
+
 	this.getCooFromPx = function(x,y) {
 		var perc = [(x-me.margin[0])/me.width,(y-me.margin[1])/me.height];
 		if(perc[0]<0||perc[1]<0||perc[0]>1||perc[1]>1) return;
