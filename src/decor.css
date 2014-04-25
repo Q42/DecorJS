@@ -55,7 +55,7 @@ scene .static.imagebg {
 .thing.has-area>.click-area {
 	position: absolute;
 }
-scene .thing.clickable,
+scene thing.clickable,
 .clickable:not(.has-area) img.image,
 scene a.thing,
 scene a.thing>img {
