@@ -251,8 +251,8 @@ Decor.Scene = function(name,data){
 		resize();
 		for(var i=0;i<data.objects.length;i++)
 			me.addThing(data.objects[i], true);
+		if(data.oninit) data.oninit(me);
 		setTimeout(function(){
-			if(data.oninit) data.oninit(me);
 			if(!imgNum) loaded();
 			oImgNum = imgNum;
 		});
@@ -285,6 +285,8 @@ Decor.Scene = function(name,data){
 			css.height = (me.height = Math.round(size[1]))+'px';
 		}
 
+		css[c3.perspective] = (data.fixedPerspective||me.width)+'px';
+
 		me.$.css(css).trigger('scene-resize');
 	};
 
@@ -292,6 +294,10 @@ Decor.Scene = function(name,data){
 		me.$.removeClass('resizing')
 		if(presx) me.$[0].scrollLeft = me.camera.position[2]?0:Math.round(presx*me.$[0].scrollWidth);
 		presx = 0;
+	};
+
+	this.addLoadImage = function(){
+		imgNum++;
 	};
 
 	this.imageLoaded = function(){
@@ -385,13 +391,13 @@ Decor.Scene = function(name,data){
 		me.active = true;
 		addEventListener('resize',resize);
 		if(data.audio) Decor.Audio.play(data.audio.src,data.audio);
-		me.$.trigger('scene-show',name);
 		onbeforeunload = function(){me.delete()};
 		setTimeout(function(){
 			me.$.addClass('shown');
 			$(document.body)
 				.addClass('done-loading scene-shown')
 				.removeClass('loaded-'+[0,20,40,60,80,100].join(' loaded-'));
+			me.$.trigger('scene-show',name);
 			if(data.onshow) data.onshow(me);
 		});
 	};
@@ -1015,10 +1021,10 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 		$('<div class="side '+x+'">').appendTo(this.$)[0].sideType = x;
 
 	function resize(){
+		var depth = Math.sqrt(Math.pow(scene.width/2,2)+Math.pow(scene.height/2,2))*a.dims[2];
+
 		me.$.children('.side:not(.front)').each(function(){
-			var $t = $(this)
-				, depth = Math.sqrt(Math.pow(scene.width/2,2)+Math.pow(scene.height/2,2))*a.dims[2]
-				;
+			var $t = $(this);
 
 			if(this.sideType=='back')
 				$t.css(c3.transform,'rotateY(180deg) translate3d(0,0,'+depth+'px');
@@ -1030,7 +1036,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 	};
 
 	scene.$.on('scene-resize',resize);
-	resize();
+	setTimeout(resize);
 };
 
 Decor.Things.Overlay = function(scene,name,o){
