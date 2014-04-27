@@ -352,7 +352,7 @@ Decor.Scene = function(name,data){
 
 		var newidx = me.objects.length;
 		for(var i in me.objects)
-			if((thing.attr.forceZOrder||thing.attr.pos[2])<me.objects[i].attr.pos[2]) {
+			if((thing.attr.forceZOrder||thing.attr.pos[2])<(me.objects[i].attr.forceZOrder||me.objects[i].attr.pos[2])) {
 				newidx = i;
 				break;
 			}
