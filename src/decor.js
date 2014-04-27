@@ -227,12 +227,14 @@ Decor.Scene = function(name,data){
 		.appendTo(document.body);
 
 	if(data.class) this.$.addClass(data.class);
+	if(data.fullWindow) data.fullWidth = true data.fullHeight = true;
+	if(data.fullHeight) this.$.addClass('full-height');
 
 	if(data.scrolling){
 		if(data.width>1)
-			$('<div class="canvas">').css('width',data.width*100+'%').appendTo(this.$);
+			this.$hCanvas = $('<div class="canvas">').css('width',data.width*100+'%').appendTo(this.$);
 		if(data.height>1)
-			$('<div class="canvas vert">').css('height',data.height*100+'%').appendTo(this.$);
+			this.$vCanvas = $('<div class="canvas vert">').appendTo(this.$);
 	}
 
 	function getAttr(o){
@@ -273,10 +275,10 @@ Decor.Scene = function(name,data){
 		var size = [innerWidth, innerWidth / format];
 		if(size[1]>innerHeight) size = [innerHeight * format, innerHeight];
 
-		var css = {
-			'margin-left': (me.margin[0]=data.fullWidth?0:Math.round((innerWidth-size[0])/2))+'px',
-			'margin-top': (me.margin[1]=Math.round((innerHeight-size[1])/2))+'px'
-		};
+		var css = {};
+
+		if(!data.fullWidth) css['margin-left'] = (me.margin[0]=Math.round((innerWidth-size[0])/2))+'px';
+		if(!data.fullHeight) css['margin-top'] = (me.margin[1]=Math.round((innerHeight-size[1])/2))+'px';
 
 		if(data.fixedSize && data.res)
 			me.$.css(c3.transform,'scale('+(me.scale=size[0]/res[0])+')');
@@ -285,7 +287,9 @@ Decor.Scene = function(name,data){
 			css.height = (me.height = Math.round(size[1]))+'px';
 		}
 
-		css[c3.perspective] = (data.fixedPerspective||me.width)+'px';
+		if(me.$vCanvas) me.$vCanvas.css('height',me.height*data.height+'px');
+
+		css[c3.perspective] = (data.fixedPerspective||Math.max(data.minPerspective||0,innerWidth))+'px';
 
 		me.$.css(css).trigger('scene-resize');
 	};
@@ -644,8 +648,8 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 	};
 
 	this.getCSS = function(noscr){
-		var co = thing.scene.camera.offset
-			, cp = thing.scene.camera.position
+		var co = scene.camera.offset
+			, cp = scene.camera.position
 			, tx = thing.attr.relative?0:cp[0]
 			, ty = thing.attr.relative?0:co[1]-(scene.data.height-1)-cp[1]
 			, fact = [scene.width,scene.height]
@@ -660,6 +664,9 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 			-Math.round(fact[1]*(xyz[1]+rel[1]+ty)),
 			sd*(xyz[2]+rel[2]+cp[2])+co[2]
 		];
+
+		if(scene.data.fullHeight)
+			coo[1]+=Math.min(0,innerWidth/scene.data.aspectRatio-innerHeight);
 
 		att.push('translate3d('+coo.join('px,')+'px)');
 		if(rot[0]) att.push('rotateX('+rot[0]+'deg)');
