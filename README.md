@@ -29,7 +29,7 @@ You can find a basic API documentation in `doc/API.html`. A few basic examples c
 Expanding this README, writing more documentation and many other things.
 
 ####Known issues
-When using scenes with many (hi-res) graphics, some browsers don't render everything. This is predominantly the case in IE and Chrome. There are also some IE-specific issues due to lack of support for cool stuff like CSS `pointer-events`. Also, browser-native `overflow: scroll` on a scene cancels z-translations on Chrome for OSX and Android.
+When using scenes with many (hi-res) graphics, some browsers don't render everything. This is predominantly the case in IE and Chrome. There are also some IE-specific issues due to lack of support for cool stuff like CSS `pointer-events`.
 
 ####Demos
 At the moment there are two DecorJS demos, built during earlier development stages:
