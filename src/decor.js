@@ -227,7 +227,7 @@ Decor.Scene = function(name,data){
 		.appendTo(document.body);
 
 	if(data.class) this.$.addClass(data.class);
-	if(data.fullWindow) data.fullWidth = true data.fullHeight = true;
+	if(data.fullWindow) data.fullWidth = data.fullHeight = true;
 	if(data.fullHeight) this.$.addClass('full-height');
 
 	if(data.scrolling){
