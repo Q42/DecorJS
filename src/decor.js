@@ -214,6 +214,7 @@ Decor.Scene = function(name,data){
 	this.width = res[0];
 	this.height = res[1];
 	this.scale = 1;
+	this.perspective = 0;
 	this.objects = [];
 	this.shown = false;
 	this.collisionObjects = [];
@@ -285,11 +286,11 @@ Decor.Scene = function(name,data){
 		else {
 			css.width = (me.width = Math.round(data.fullWidth?innerWidth:size[0]))+'px';
 			css.height = (me.height = Math.round(size[1]))+'px';
+			var per =  Math.round(Math.sqrt(Math.pow(me.width/2,2)+Math.pow(me.height/2,2)));
+			css[c3.perspective] = (me.perspective=data.fixedPerspective||Math.max(data.minPerspective||0,per))+'px';
 		}
 
 		if(me.$vCanvas) me.$vCanvas.css('height',me.height*data.height+'px');
-
-		css[c3.perspective] = (data.fixedPerspective||Math.max(data.minPerspective||0,innerWidth))+'px';
 
 		me.$.css(css).trigger('scene-resize');
 	};
