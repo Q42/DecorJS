@@ -126,6 +126,8 @@ Decor = new function(){
 		||(isIE && $.browser.version>=10)
 		||isMobile;
 
+	if(!this.compatible) document.documentElement.className = 'no-decor';
+
 	c3p = isWebkit||isIOS?'-webkit-':'';
 	c3 = {
 		perspective: c3p+'perspective',
@@ -174,6 +176,7 @@ Decor = new function(){
 	};
 
 	this.goto = function(n,del){return function(e){
+		if(!me.compatible) return;
 		var cs = Decor.currentScene;
 		if(cs&&cs.name==n) return;
 		if(e&&e.target){e.stopPropagation();e.preventDefault()}
