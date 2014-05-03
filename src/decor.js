@@ -126,7 +126,7 @@ Decor = new function(){
 		||(isIE && $.browser.version>=10)
 		||isMobile;
 
-	if(!this.compatible) document.documentElement.className = 'no-decor';
+	if(!this.compatible) incompatible();
 
 	c3p = isWebkit||isIOS?'-webkit-':'';
 	c3 = {
@@ -150,6 +150,10 @@ Decor = new function(){
 
 	this.Scenes = {};
 	this.Things = {};
+
+	function incompatible(){
+		document.documentElement.classList.add('no-decor');
+	};
 
 	this.reloadScene = function(){
 		me.resetTo(Decor.currentScene.name)()
@@ -182,6 +186,7 @@ Decor = new function(){
 		if(e&&e.target){e.stopPropagation();e.preventDefault()}
 		var data = Decor.Scenes[n];
 		if(!data) return console.error('Scene ['+n+'] not found');
+		if(data.webkitOnly && !$.browser.webkit) return incompatible();
 		function load(){(_scenes[n]||(_scenes[n]=new Decor.Scene(n,data))).show()};
 		if(cs) cs[del?'delete':'hide'](load);
 		else load();
