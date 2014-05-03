@@ -667,7 +667,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		];
 
 		if(scene.data.fullHeight)
-			coo[1]+=Math.min(0,innerWidth/scene.data.aspectRatio-innerHeight);
+			coo[1]+=Math.round(Math.min(0,innerWidth/scene.data.aspectRatio-innerHeight));
 
 		att.push('translate3d('+coo.join('px,')+'px)');
 		if(rot[0]) att.push('rotateX('+rot[0]+'deg)');
