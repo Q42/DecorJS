@@ -51,7 +51,7 @@ if(!window.$) {
 		has         : function(el)   { for(var i=0;i<this.length;i++) if(this[i]==el) return true },
 		add         : function(sel)  { sel = _getEls(sel); var me = this, cu = []; for(var i=0;i<this.length;i++) cu.push(this[i]); var ta = cu.concat([].filter.call(sel,function(n){return cu.indexOf(n)==-1})); return ta.length==this.length?this:new _$(ta) },
 		attr        : function(k,v)  { if(v===undefined) return this[0]&&this[0].getAttribute(k); this.each(function(){this[((v===null)?'remove':'set')+'Attribute'](k,v)}); return this },
-		trigger     : function(e,v)  { this.each(function(){var evt = !isIE&&window.CustomEvent?new CustomEvent(e,{detail:v}):document.createEvent('CustomEvent');if(isIE||!window.CustomEvent) evt.initCustomEvent(e, false, false, v);this.dispatchEvent(evt)}); return this },
+		trigger     : function(e,v)  { this.each(function(){var evt = !$.browser.ie&&window.CustomEvent?new CustomEvent(e,{detail:v}):document.createEvent('CustomEvent');if($.browser.ie||!window.CustomEvent) evt.initCustomEvent(e, false, false, v);this.dispatchEvent(evt)}); return this },
 		on          : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.addEventListener(e[x],f)}); return this },
 		off         : function(e,f)  { e=e.split(' '); this.each(function(){for(var x in e) this.removeEventListener(e[x],f)}); return this },
 		click       : function(f)    { if(f instanceof Function) this.on('click',f); else this.trigger('click'); return this },
@@ -105,30 +105,23 @@ if(!$.events) $.events = {
 Decor = new function(){
 	var me = this;
 
-	isWebkit = $.browser.webkit;
-	isFirefox = $.browser.firefox;
-	isSafari = $.browser.safari;
-	isIE = $.browser.ie;
-	isIOS = $.browser.iOS;
-	isAndroid = $.browser.android;
-	isMobile = $.browser.mobile;
-
 	var bc = document.documentElement.classList;
-	if(isWebkit) bc.add('webkit');
-	if(isFirefox) bc.add('firefox');
-	if(isIE) bc.add('ie');
-	if(isIOS) bc.add('ios');
-	if(isAndroid) bc.add('android');
-	if(isMobile) bc.add('mobile');
+	if($.browser.webkit) bc.add('webkit');
+	if($.browser.firefox) bc.add('firefox');
+	if($.browser.ie) bc.add('ie');
+	if($.browser.iOS) bc.add('ios');
+	if($.browser.android) bc.add('android');
+	if($.browser.mobile) bc.add('mobile');
 
-	this.compatible = (isWebkit && $.browser.version>=530)
-		||(isFirefox && $.browser.version>=21)
-		||(isIE && $.browser.version>=10)
-		||isMobile;
+	this.compatible = ($.browser.webkit && $.browser.version>=530)
+		||($.browser.firefox && $.browser.version>=21)
+		||($.browser.ie && $.browser.version>=10)
+		||$.browser.mobile;
 
 	if(!this.compatible) incompatible();
 
-	c3p = isWebkit||isIOS?'-webkit-':'';
+	var prefixed = $.browser.webkit||$.browser.iOS;
+	c3p = prefixed?'-webkit-':'';
 	c3 = {
 		perspective: c3p+'perspective',
 		perspectiveOrigin: c3p+'perspective-origin',
@@ -140,9 +133,9 @@ Decor = new function(){
 	};
 
 	c3d = {
-		transform: (isWebkit||isIOS?'webkitT':'t')+'ransform',
-		transition: (isWebkit||isIOS?'webkitT':'t')+'ransition',
-		animation: (isWebkit||isIOS?'webkitA':'a')+'animation'
+		transform: (prefixed?'webkitT':'t')+'ransform',
+		transition: (prefixed?'webkitT':'t')+'ransition',
+		animation: (prefixed?'webkitA':'a')+'animation'
 	};
 
 	$window = $(window);
@@ -187,7 +180,8 @@ Decor = new function(){
 		if(e&&e.target){e.stopPropagation();e.preventDefault()}
 		var data = Decor.Scenes[n];
 		if(!data) return console.error('Scene ['+n+'] not found');
-		if(data.webkitOnly && !$.browser.webkit) return incompatible();
+		if((data.webkitOnly && !$.browser.webkit) ||
+			(data.noIE && $.browser.ie)) return incompatible();
 		function load(){(_scenes[n]||(_scenes[n]=new Decor.Scene(n,data))).show()};
 		if(cs) cs[del?'delete':'hide'](load);
 		else load();
@@ -337,7 +331,8 @@ Decor.Scene = function(name,data){
 
 	this.addThing = function(o, noAdd) {
 		o.o=o.o||{};
-		if(o.o.noIE&&isIE) return null;
+		if((o.o.noIE&&$.browser.ie) ||
+			(o.o.noWebkit&&$.browser.webkit)) return null;
 		var type,name;
 		for(var x in o){type=x,name=o[x];break;}
 		if(data.prototypes&&/^\$/.test(name)) {
@@ -801,7 +796,7 @@ Decor.Audio = new function(){
 	};
 
 	function getSrc(src){
-		if((isIE || isIOS || isSafari) && /\.ogg$/.test(src))
+		if(($.browser.ie || $.browser.iOS || $.browser.safari) && /\.ogg$/.test(src))
 			src = src.replace(/\.ogg/,'.mp3');
 		return src;
 	};
@@ -939,7 +934,7 @@ Decor.Things.ImageContain = function(scene,name,o) {
 
 	var $cl = $();
 	var clickArea = o.clickable&&o.clickable.length;
-	if(isIE&&$.browser.version<11) clickArea = false;
+	if($.browser.ie&&$.browser.version<11) clickArea = false;
 	var area = o.clickable&&o.clickable.length?o.clickable:[[0,0],[1,1]];
 	if(o.clickable && clickArea) {
 		$cnt.addClass('has-area');
