@@ -131,6 +131,7 @@ Decor = new function(){
 	c3p = isWebkit||isIOS?'-webkit-':'';
 	c3 = {
 		perspective: c3p+'perspective',
+		perspectiveOrigin: c3p+'perspective-origin',
 		transform: c3p+'transform',
 		transition: c3p+'transition',
 		transitionD: c3p+'transition-duration',
@@ -296,6 +297,10 @@ Decor.Scene = function(name,data){
 			css.height = (me.height = Math.round(size[1]))+'px';
 			var per =  Math.round(Math.sqrt(Math.pow(me.width/2,2)+Math.pow(me.height/2,2)));
 			css[c3.perspective] = (me.perspective=data.fixedPerspective||Math.max(data.minPerspective||0,per))+'px';
+			if(data.perspectiveOrigin) css[c3.perspectiveOrigin] = [
+					Math.round(data.perspectiveOrigin[0]*me.width),
+					Math.round(data.perspectiveOrigin[1]*me.height)
+				].join('px ')+'px';
 		}
 
 		if(me.$vCanvas) me.$vCanvas.css('height',me.height*data.height+'px');
