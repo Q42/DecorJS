@@ -7,7 +7,18 @@ This framework is for experimenting with and building such environments.
 
 DecorJS is a framework, or rather *engine* to provide easy JSON-object to HTML output.
 
-It works in *scenes*, which are defined as a single JS Object.
+It works in *scenes*, which are defined as a single JS Object. Each scene has a 3D-space where you can place arbitrary HTML elements based on `[x,y,z]` coordinates. Then you can use a *camera* to navigate through your scene.
+
+####Features
+* Minimal footprint, 30KB minified
+* Monolithic engine which only does what it needs to do
+* Camera and 3D scene based thinking, like in OpenGL/WebGL
+* Define your scenes and object using JSON
+* Easily extend available primitives for creating your own elements
+* You still have total styling and event handling power over your scene objects
+* Support for both native browser scrolling and camera-based viewports
+* Works well alongside other frameworks
+* Works in all modern browsers: Chrome, Firefox, Safari, Opera and IE10+, including mobile versions
 
 ####Performance
 
@@ -26,7 +37,7 @@ All you need to get started is a little JS and CSS knowledge. Forget about HTML 
 You can find a basic API documentation in `doc/API.html`. A few basic examples can be found in `examples/`.
 
 ####Todos
-Expanding this README, writing more documentation and many other things.
+Writing more documentation and many other things.
 
 ####Known issues
 When using scenes with many (hi-res) graphics, some browsers don't render everything. This is predominantly the case in IE and Chrome. There are also some IE-specific issues due to lack of support for cool stuff like CSS `pointer-events`.
