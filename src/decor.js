@@ -69,10 +69,9 @@ if(!window.$) {
 		width       : function()     { return this[0]&&this[0].clientWidth },
 		height      : function()     { return this[0]&&this[0].clientHeight }
 	};
-
 }
 
-if(!$.browser) $.browser = new function(){
+$.browser = new function(){
 	var ualc = navigator.userAgent.toLowerCase();
 
 	this.webkit = /applewebkit/.test(ualc);
@@ -91,36 +90,16 @@ if(!$.browser) $.browser = new function(){
 		: -1);
 
 	this.retina = (window.devicePixelRatio && window.devicePixelRatio >= 2) && this.iOS;
-};
-
-if(!$.events) $.events = {
-	getEvent: function(e) { return e.changedTouches&&e.changedTouches[0]||e.touches&&e.touches[0]||e },
-	getPageX: function(e) { return $.events.getEvent(e).pageX },
-	getPageY: function(e) { return $.events.getEvent(e).pageY },
-	getClientX: function(e) { return $.events.getEvent(e).clientX },
-	getClientY: function(e) { return $.events.getEvent(e).clientY }
-};
-
-//Main
-Decor = new function(){
-	var me = this;
 
 	var bc = document.documentElement.classList;
-	if($.browser.webkit) bc.add('webkit');
-	if($.browser.firefox) bc.add('firefox');
-	if($.browser.ie) bc.add('ie');
-	if($.browser.iOS) bc.add('ios');
-	if($.browser.android) bc.add('android');
-	if($.browser.mobile) bc.add('mobile');
+	if(this.webkit) bc.add('webkit');
+	if(this.firefox) bc.add('firefox');
+	if(this.ie) bc.add('ie');
+	if(this.iOS) bc.add('ios');
+	if(this.android) bc.add('android');
+	if(this.mobile) bc.add('mobile');
 
-	this.compatible = ($.browser.webkit && $.browser.version>=530)
-		||($.browser.firefox && $.browser.version>=21)
-		||($.browser.ie && $.browser.version>=10)
-		||$.browser.mobile;
-
-	if(!this.compatible) incompatible();
-
-	var prefixed = $.browser.webkit||$.browser.iOS;
+	var prefixed = this.webkit||this.iOS;
 	c3p = prefixed?'-webkit-':'';
 	c3 = {
 		perspective: c3p+'perspective',
@@ -138,7 +117,26 @@ Decor = new function(){
 		animation: (prefixed?'webkitA':'a')+'animation'
 	};
 
-	$window = $(window);
+};
+
+if(!$.events) $.events = {
+	getEvent: function(e) { return e.changedTouches&&e.changedTouches[0]||e.touches&&e.touches[0]||e },
+	getPageX: function(e) { return $.events.getEvent(e).pageX },
+	getPageY: function(e) { return $.events.getEvent(e).pageY },
+	getClientX: function(e) { return $.events.getEvent(e).clientX },
+	getClientY: function(e) { return $.events.getEvent(e).clientY }
+};
+
+//Main
+Decor = new function(){
+	var me = this;
+
+	this.compatible = ($.browser.webkit && $.browser.version>=530)
+		||($.browser.firefox && $.browser.version>=21)
+		||($.browser.ie && $.browser.version>=10)
+		||$.browser.mobile;
+
+	if(!this.compatible) incompatible();
 
 	var _scenes = {};
 
@@ -203,6 +201,7 @@ Decor.Scene = function(name,data){
 		, format = data.aspectRatio||16/9
 		, res = data.res || [innerWidth,innerHeight*format]
 		, inited = false
+		, checkFr = null
 		, imgNum = 0
 		, oImgNum = 0
 		, presx = 0
@@ -258,7 +257,7 @@ Decor.Scene = function(name,data){
 		for(var i=0;i<data.objects.length;i++)
 			me.addThing(data.objects[i], true);
 		if(data.oninit) data.oninit(me);
-		setTimeout(function(){
+		requestAnimationFrame(function(){
 			if(!imgNum) loaded();
 			oImgNum = imgNum;
 		});
@@ -268,6 +267,29 @@ Decor.Scene = function(name,data){
 		if(data.scrollLeft) me.camera.setPosition([(data.scrollLeft||0)*10,0,0]);
 		me.$.addClass('loaded');
 		me.show();
+	};
+
+	// Show/hide objects that have the .onlyShowInside attr
+	function updateViewable(){
+		var m = me.margin
+			, scr = [me.$[0].scrollLeft,me.$[0].scrollTop]
+			, fullHeight = me.data.fullHeight&&innerHeight||me.height
+			, view = [
+				me.getCooFromPx(m[0]+scr[0],m[1]+scr[1]),
+				me.getCooFromPx(m[0]+scr[0]+me.width,m[1]+scr[1]+fullHeight)
+			]
+			, q = {l: view[0][0], t: -view[0][1], r: view[1][0], b: -view[1][1]}
+			;
+
+		for(var i in me.objects)
+			if(me.objects[i].attr.showOnlyInView) {
+				var area = me.objects[i].attr.showOnlyInView
+					, qo = {l: area[0][0], b: -area[0][1], r: area[1][0], t: -area[1][1] }
+					, intersects = me.objects[i].matrix.intersects(qo,q)
+					;
+				if(me.objects[i].notInView == intersects)
+					me.objects[i].setNotInView(!intersects);
+			}
 	};
 
 	function resize(){
@@ -289,7 +311,7 @@ Decor.Scene = function(name,data){
 		else {
 			css.width = (me.width = Math.round(data.fullWidth?innerWidth:size[0]))+'px';
 			css.height = (me.height = Math.round(size[1]))+'px';
-			var per =  Math.round(Math.sqrt(Math.pow(me.width/2,2)+Math.pow(me.height/2,2)));
+			var per =  2*Math.round(Math.sqrt(Math.pow(me.width/2,2)+Math.pow(me.height/2,2)));
 			css[c3.perspective] = (me.perspective=data.fixedPerspective||Math.max(data.minPerspective||0,per))+'px';
 			if(data.perspectiveOrigin) css[c3.perspectiveOrigin] = [
 					Math.round(data.perspectiveOrigin[0]*me.width),
@@ -402,8 +424,13 @@ Decor.Scene = function(name,data){
 
 	this.getCooFromPx = function(x,y) {
 		var perc = [(x-me.margin[0])/me.width,(y-me.margin[1])/me.height];
-		if(perc[0]<0||perc[1]<0||perc[0]>1||perc[1]>1) return;
 		return [perc[0]+me.camera.position[0],1-perc[1]+me.camera.position[1],me.camera.position[2]];
+	};
+
+	this.updateViewable = function(){
+		if(!data.checkInsideView) return;
+		cancelAnimationFrame(checkFr);
+		checkFr = requestAnimationFrame(updateViewable);
 	};
 
 	this.show = function(){
@@ -419,6 +446,7 @@ Decor.Scene = function(name,data){
 		addEventListener('resize',resize);
 		if(data.audio) Decor.Audio.play(data.audio.src,data.audio);
 		onbeforeunload = function(){me.delete()};
+		if(data.checkInsideView) me.$[0].addEventListener('scroll',me.updateViewable);
 		setTimeout(function(){
 			me.$.addClass('shown');
 			$(document.body)
@@ -433,13 +461,14 @@ Decor.Scene = function(name,data){
 		if(!me.shown) return cb&&cb();
 		me.shown = false;
 		me.active = false;
+		me.$[0].removeEventListener('scroll',me.updateViewable);
 		me.$.removeClass('shown').addClass('hiding');
 		$(document.body).removeClass('scene-shown');
 		removeEventListener('resize',resize);
 		if(data.audio) Decor.Audio.stop(data.audio.src);
 		setTimeout(function(){
 			me.$.removeClass('placed hiding').hide();
-			$window.add(me.$).trigger('scene-hide',name);
+			$(window).add(me.$).trigger('scene-hide',name);
 			if(cb) cb();
 		},data.hideDuration||0);
 	};
@@ -507,14 +536,17 @@ Decor.Camera = function(scene){
 	this.panTo = function(coo,duration,fn,reset) {
 		if(!(coo instanceof Array)) return;
 		clearTimeout(aniTo);
-		var css = {};
-		css[c3.transitionTF] = fn||'ease-in-out';
-		css[c3.transitionD] = (duration||0)/1000+'s';
-		insideView(function(){
-			this.$cnt.css(css);
-		});
+		if(duration) {
+			var css = {};
+			css[c3.transitionTF] = fn||'ease-in-out';
+			css[c3.transitionD] = (duration||0)/1000+'s';
+			insideView(function(){
+				this.$cnt.css(css);
+			});
+			aniTo = setTimeout(resetAnimation,duration+50);
+		}
+		else resetAnimation();
 		me.setPosition(coo,reset);
-		setTimeout(resetAnimation,duration+50);
 	};
 
 	this.setPosition = function(c,reset) {
@@ -524,8 +556,11 @@ Decor.Camera = function(scene){
 		me.position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
 		me.position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
 		me.position[2] = c[2];
-		insideView(function(){
-			this.place(reset)
+		scene.updateViewable();
+		requestAnimationFrame(function(){
+			insideView(function(){
+				this.place(reset)
+			});
 		});
 	};
 
@@ -628,7 +663,6 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 	var me = this
 		, scene = thing.scene
 		, rel = [0,0,0]
-		, size = [thing.rwidth,thing.rheight]
 		;
 
 	function getScale(v){
@@ -639,7 +673,9 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 
 	this.getQuad = function(c){
 		c=c||[0,0,0];
-		var p = me.getPosition();
+		var p = me.getPosition()
+			, size = [thing.rwidth,thing.rheight]
+			;
 		return {
 			l: p[0]+c[0],
 			r: p[0]+c[0]+size[0],
@@ -648,8 +684,8 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		};
 	};
 
-	this.intersects = function(cq) {
-		var q = me.getQuad();
+	this.intersects = function(cq,oq) {
+		var q = oq&&'l' in oq&&oq||me.getQuad();
 		return !(cq.l > q.r || 
 			cq.r < q.l || 
 			cq.t > q.b ||
@@ -687,7 +723,7 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 		return att.join(' ');
 	};
 
-	this.getPosition = function(nocenter){
+	this.getPosition = function(){
 		return [xyz[0]+rel[0],xyz[1]+rel[1],xyz[2]+rel[2]];
 	};
 

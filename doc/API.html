@@ -63,6 +63,8 @@ dl > dd {
       <dd>Sizes the scene to fit the window height. This keeps the object aspect ratios in order and simply shows the overflow.</dd>
       <dt>fullWindow</dt>
       <dd>Shorthand for <code>fullWidth</code> and <code>fullHeight</code> as <code>true</code>.</dd>
+      <dt>checkInsideView</dt>
+      <dd>Boolean. When enabled, scene objects with the <code>showOnlyInView</code> attribute will be evaluated on scroll and camera move and will only be shown if its set rectangle intersects the current viewport.</dd>
       <dt>webkitOnly</dt>
       <dd>Only enable this scene for Webkit browsers as Gecko &amp; IE exhibit rendering glitches for certain scenes. Boolean.</dd>
       <dt>noIE</dt>
@@ -151,9 +153,9 @@ dl > dd {
 
 <h2><code>Decor.Mat3D</code> class</h2>
 <dl>
-  <dt>intersects(rect)</dt>
+  <dt>intersects(rect,rect2)</dt>
   <dd>Checks if the thing where this matrix belongs to overlaps with the given rectangle in 2D space.
-    <code>rect</code> is an object with properties <code>t, l, b, r</code>.</dd>
+    <code>rect</code> is an object with properties <code>t, l, b, r</code>. If <code>rect2</code> is specified, <code>rect</code> and <code>rect2</code> will be compared instead.</dd>
   <dt>getPosition()</dt>
   <dd>returns <code>[x, y, z]</code> coordinates.</dd>
   <dt>getElementPosition()</dt>
@@ -205,6 +207,8 @@ dl > dd {
   <dd><code>z</code> int to override <code>pos</code>-based DOM ordering.</dd>
   <dt>class</dt>
   <dd>Extra class names for the HTML element. The <code>name</code> of the object is always set as class name.</dd>
+  <dt>showOnlyInView</dt>
+  <dd><code>[[x0, y0], [x1, y1]]</code> in the form of <code>[left bottom, right top]</code>. When <code>SceneData.checkInsideView</code> is enabled, the element will only be shown if the specified rectangle is inside the viewport.</dd>
 </dl>
 
 
