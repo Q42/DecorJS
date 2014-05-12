@@ -42,13 +42,13 @@ if(!window.$) {
 		append      : function(el)   { if(this[0]) $(el).appendTo(this[0]); return this },
 		parent      : function()     { var r = [];this.each(function(){if(r.indexOf(this.parentNode)<0) r.push(this.parentNode)}); return new _$(r) },
 		closest     : function(sel)  { var r = [];this.each(function(){var pn = this; while(pn=pn.parentNode) if($(pn).filter(sel)[0]) return r.indexOf(pn)<0&&r.push(pn)}); return new _$(r) },
-		children    : function(sel)  { sel = sel || '*';var ce = [];this.each(function(){var e = this.querySelectorAll(sel);for(var i=0;i<e.length;i++) if(e[i].parentNode==this) ce.push(e[i]);}); return new _$(ce) },
+		children    : function(vsel) { var sel = typeof vsel == 'string' ? vsel : '*';var ce = [];this.each(function(){ var e = this.querySelectorAll(sel);for(var i=0;i<e.length;i++) if(e[i].parentNode==this && (vsel instanceof _$?vsel.has(e[i]):1)) ce.push(e[i]) }); return new _$(ce) },
 		siblings    : function(sel)  { var r = [], me = this; this.parent().children().filter(sel).each(function(){ if(!me.has(this)&&r.indexOf(this)<0) r.push(this) }); return new _$(r) },
 		find        : function(sel)  { return new _$(sel,this[0]) },
 		filter      : function(s,iv) { s = $('<div>').append(this.clone(true)).children(s); return new _$([].filter.call(this,function(n){ for(var i=0;i<s.length;i++) if(s[i]._originalNode==n) return !iv; return !!iv })) },
 		not         : function(sel)  { return this.filter(sel,true) },
 		eq          : function(i)    { return new _$(this[i]) },
-		has         : function(el)   { for(var i=0;i<this.length;i++) if(this[i]==el) return true },
+		has         : function(el)   { for(var i=0;i<this.length;i++) if(this[i]._originalNode==el||this[i]==el._originalNode||this[i]==el) return true; return false },
 		add         : function(sel)  { sel = _getEls(sel); var me = this, cu = []; for(var i=0;i<this.length;i++) cu.push(this[i]); var ta = cu.concat([].filter.call(sel,function(n){return cu.indexOf(n)==-1})); return ta.length==this.length?this:new _$(ta) },
 		attr        : function(k,v)  { if(v===undefined) return this[0]&&this[0].getAttribute(k); this.each(function(){this[((v===null)?'remove':'set')+'Attribute'](k,v)}); return this },
 		trigger     : function(e,v)  { this.each(function(){var evt = !$.browser.ie&&window.CustomEvent?new CustomEvent(e,{detail:v}):document.createEvent('CustomEvent');if($.browser.ie||!window.CustomEvent) evt.initCustomEvent(e, false, false, v);this.dispatchEvent(evt)}); return this },
@@ -256,8 +256,8 @@ Decor.Scene = function(name,data){
 		resize();
 		for(var i=0;i<data.objects.length;i++)
 			me.addThing(data.objects[i], true);
-		if(data.oninit) data.oninit(me);
 		requestAnimationFrame(function(){
+			if(data.oninit) data.oninit(me);
 			if(!imgNum) loaded();
 			oImgNum = imgNum;
 		});
@@ -398,7 +398,7 @@ Decor.Scene = function(name,data){
 
 	this.placeThing = function(thing) {
 		if(!thing.$cnt) return console.warn('Trying to place thing without container');
-		setTimeout(function(){
+		requestAnimationFrame(function(){
 			var index = me.objects.indexOf(thing);
 			if(index<0) return console.warn('Trying to place object not in scene');
 			for(var i=index+1;i<me.objects.length;i++)
