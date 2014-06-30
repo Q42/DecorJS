@@ -227,6 +227,13 @@ dl > dd {
 <h3><code>Decor.Things.Static :: Thing</code></h3>
 <p>Always sets the <code>static</code> property to true.</p>
 
+<h3><code>Decor.Things.Container</code></h3>
+<p>A container object allowing relative child <code>Things</code> in its constructor.</p>
+<dl>
+  <dt>children</dt>
+  <dd>An array of object definitions just like <code>sceneData.objects</code> which will be placed relative to the container's size and position, still accessible by <code>scene.getThing</code>.</dd>
+</dl>
+
 <h3><code>Decor.Things.HTMLContain :: Static</code></h3>
 <p>Put existing HTML elements inside a scene object.</p>
 <dl>
