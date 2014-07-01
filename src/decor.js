@@ -886,7 +886,7 @@ Decor.Things.Thing = function(scene,name,o){
 		if(dims&&dims.length) for(var x in dims) o.dims[x] = dims[x];
 
 		var rat = o.isDepth?scene.height/1080:1;
-		var container = me.container||scene;
+		var container = o.relativeSize&&me.container||scene;
 
 		me.$.css({
 			width: (me.width=o.px&&o.px[0]||Math.round(o.dims[0]*container.width))+'px',
@@ -925,6 +925,7 @@ Decor.Things.Container = function(scene,name,o){
 	Decor.Things.Thing.call(this,scene,name,o);
 	for(var i=0;i<o.children.length;i++) {
 		o.children[i].o.noshow = true;
+		o.children[i].o.relativeSize = o.relativeSize;
 		var t = scene.addThing(o.children[i]);
 		t.container = this;
 		this.$.append(t.$cnt);
