@@ -923,12 +923,14 @@ Decor.Things.Static = function(scene,name,o){ // :: Thing
 
 Decor.Things.Container = function(scene,name,o){
 	Decor.Things.Thing.call(this,scene,name,o);
+	this.children = [];
 	for(var i=0;i<o.children.length;i++) {
 		o.children[i].o.noshow = true;
 		o.children[i].o.relativeSize = o.relativeSize;
 		var t = scene.addThing(o.children[i]);
 		t.container = this;
 		this.$.append(t.$cnt);
+		this.children.push(t);
 	}
 };
 
