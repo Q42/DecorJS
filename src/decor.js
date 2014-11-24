@@ -1,5 +1,5 @@
 /*
-** DecorJS - v0.5
+** DecorJS - v0.7
 ** https://github.com/Q42/DecorJS
 **
 ** (c) 2014 Q42, Marcel Duin <marcel@q42.nl>
@@ -128,93 +128,212 @@ if(!$.events) $.events = {
 };
 
 //Main
-Decor = new function(){
-	var me = this;
-
-	this.compatible = ($.browser.webkit && $.browser.version>=530)
-		||($.browser.firefox && $.browser.version>=21)
-		||($.browser.ie && $.browser.version>=10)
-		||$.browser.mobile;
-
-	if(!this.compatible) incompatible();
-
-	var _scenes = {};
-
+_Decor = function() {
 	this.Scenes = {};
 	this.Things = {};
+	this._scenes = {};
 
-	function incompatible(){
+	this.init();
+};
+
+_Decor.prototype = {
+	init: function(){
+		this.compatible = ($.browser.webkit && $.browser.version>=530)
+			||($.browser.firefox && $.browser.version>=21)
+			||($.browser.ie && $.browser.version>=10)
+			||$.browser.mobile;
+
+		if(!this.compatible) incompatible();
+
+		this.Frame = new _Decor._Frame;
+		this.Audio = new _Decor._Audio;
+	},
+
+	incompatible: function(){
 		document.documentElement.classList.add('no-decor');
-	};
+	},
 
-	this.reloadScene = function(){
-		me.resetTo(Decor.currentScene.name)()
-	};
-	this.reset = function(){
+	reloadScene: function(){
+		this.resetTo(this.currentScene.name)()
+	},
+
+	reset: function(){
 		var primary = null;
-		for(var x in Decor.Scenes) { primary=x; break; }
-		me.resetTo(primary)();
-	};
-	this.resetTo = function(name){return function(){
-		if(Decor.currentScene) Decor.currentScene.hide(function(){
-			localStorage.removeItem('currentScene');
-			Decor.currentScene = null;
-			for(var x in _scenes) me.delete(x);
-			me.goto(name)();
-		});
-	}};
-	this.resetHard = function(){
+		for(var x in this.Scenes) { primary=x; break; }
+		this.resetTo(primary)();
+	},
+
+	resetTo: function(name){
+		var self = this;
+		return function(){
+			if(self.currentScene) self.currentScene.hide(function(){
+				localStorage.removeItem('currentScene');
+				self.currentScene = null;
+				for(var x in self._scenes) self.delete(x);
+				self.goto(name)();
+			});
+		}
+	},
+
+	resetHard: function(){
 		localStorage.removeItem('currentScene');
-		if(Decor.currentScene) Decor.currentScene.hide(function(){
+		if(this.currentScene) this.currentScene.hide(function(){
 			location.reload()
 		});
 		else location.reload();
-	};
+	},
 
-	this.goto = function(n,del){return function(e){
-		if(!me.compatible) return;
-		var cs = Decor.currentScene;
-		if(cs&&cs.name==n) return;
-		if(e&&e.target){e.stopPropagation();e.preventDefault()}
-		var data = Decor.Scenes[n];
-		if(!data) return console.error('Scene ['+n+'] not found');
-		if((data.webkitOnly && !$.browser.webkit) ||
-			(data.noIE && $.browser.ie)) return incompatible();
-		function load(){(_scenes[n]||(_scenes[n]=new Decor.Scene(n,data))).show()};
-		if(cs) cs[del?'delete':'hide'](load);
-		else load();
-	}};
+	goto: function(n,del){
+		var self = this;
+		return function(e){
+			if(!self.compatible) return;
+			var cs = self.currentScene;
+			if(cs&&cs.name==n) return;
+			if(e&&e.target){e.stopPropagation();e.preventDefault()}
+			var data = self.Scenes[n];
+			if(!data) return console.error('Scene ['+n+'] not found');
+			if((data.webkitOnly && !$.browser.webkit) ||
+				(data.noIE && $.browser.ie)) return self.incompatible();
 
-	this.delete = function(n){
-		if(!_scenes[n]) return;
-		function del(){ delete _scenes[n]; };
-		if(!_scenes[n].deleted) _scenes[n].delete(del);
+			function load(){(self._scenes[n]||(self._scenes[n]=new Decor.Scene(n,data))).show()};
+
+			if(cs) cs[del?'delete':'hide'](load);
+			else load();
+		}
+	},
+
+	delete: function(n){
+		if(!this._scenes[n]) return;
+		function del(){ delete this._scenes[n]; };
+		if(!this._scenes[n].deleted) this._scenes[n].delete(del);
 		else del();
-	};
+	}
 
 };
 
+_Decor._Frame = function(){
+	this.started = false;
+	this._q = [];
+	this._raf = null;
+	this._fi = null;
+};
+
+_Decor._Frame.prototype = {
+	start: function(){
+		if(this.started) return;
+		this.started = true;
+
+		var self = this;
+		this._raf = requestAnimationFrame(this._cycle = function(){
+			self.cycle()
+		});
+	},
+
+	stop: function(){
+		if(!this.started) return;
+		this.started = false;
+		cancelAnimationFrame(this._raf);
+	},
+
+	cycle: function(t){
+		if(!this._q.length) return this.stop();
+
+		var num = this._q.length;
+		while(num--) this._q.shift()(t);
+
+		this._raf = requestAnimationFrame(this._cycle);
+	},
+
+	request: function(cb){
+		if(this._q.push(cb)==1) this.start()
+	},
+
+	cancel: function(cb){
+		for(var i=0;i<this._q.length;i++)
+			if(cb==this._q[i]) this._q.shift();
+		if(!this._q.length) this.stop();
+	}
+};
+
+_Decor._Audio = function(){
+	this._f = [];
+};
+
+_Decor._Audio.prototype = {
+
+	getSrc: function(src){
+		if(($.browser.ie || $.browser.iOS || $.browser.safari) && /\.ogg$/.test(src))
+			src = src.replace(/\.ogg/,'.mp3');
+		return src;
+	},
+
+	getIdle: function(src){
+		for(var x in this._f)
+			if(this._f[x].src==src && !this._f[x].playing)
+				return this._f[x];
+	},
+
+	play: function(src,o) {
+		src = this.getSrc(src);
+		var fr = this.getIdle(src);
+		if(fr) fr.play.call(fr);
+		else this._f.push(fr=new Decor._Audio.Fragment(src,o));
+		return fr.audio;
+	},
+
+	stop: function(src) {
+		src = this.getSrc(src);
+		for(var x in this._f) if(this._f[x].src==src) this._f[x].stop.call(this._f[x]);
+	}
+
+};
+
+_Decor._Audio.Fragment = function(src,o){
+	o=o||{};
+	this.audio = new Audio;
+	this.audio.volume	= o.volume||1;
+	this.audio.src = this.src = src;
+	this.play();
+};
+
+_Decor._Audio.Fragment.prototype = {
+	playing: false,
+	play: function(){
+		if(!this.audio||this.playing) return;
+		this.playing = true;
+		this.audio.load();
+		this.audio.play();
+		this.audio.addEventListener('ended',this.stop);
+	},
+	stop: function(){
+		if(!this.playing) return;
+		this.playing = false;
+		this.audio.pause();
+	}
+};
+
+
+Decor = new _Decor;
+
 Decor.Scene = function(name,data){
-	data = $.extend(true,{},data);
-
-	var me = this
-		, format = data.aspectRatio||16/9
-		, res = data.res || [innerWidth,innerHeight*format]
-		, inited = false
-		, checkFr = null
-		, imgNum = 0
-		, oImgNum = 0
-		, presx = 0
-		, rto = null
-		;
-
-	data.width=data.width||1;
-	data.height=data.height||1;
-
 	this.name = name;
-	this.data = data;
-	this.width = res[0];
-	this.height = res[1];
+	this.data = data = $.extend(true,{},data);
+
+	// Internals
+	this._format = data.aspectRatio||16/9;
+	this._res = data.res || [innerWidth,innerHeight*this._format];
+	this._imgNum = 0;
+	this._oImgNum = 0;
+	this._rto = null;
+	this._presx = 0;
+	this._checkFr = null;
+
+	this.data.width=this.data.width||1;
+	this.data.height=this.data.height||1;
+
+	this.inited = false;
+	this.width = this._res[0];
+	this.height = this._res[1];
 	this.scale = 1;
 	this.perspective = 0;
 	this.objects = [];
@@ -225,294 +344,400 @@ Decor.Scene = function(name,data){
 	this.active = false;
 	this.deleted = false;
 
-	this.$ = $('<scene>').addClass(name)
-		.css({width:res[0]+'px',height:res[1]+'px'})
-		.appendTo(document.body);
+	this.init();
+};
 
-	if(data.class) this.$.addClass(data.class);
-	if(data.fullWindow) data.fullWidth = data.fullHeight = true;
-	if(data.fullHeight) this.$.addClass('full-height');
+Decor.Scene.prototype = {
+	init: function(){
+		this.$ = $('<scene>').addClass(this.name)
+			.css({width:this.width+'px',height:this.height+'px'})
+			.appendTo(document.body);
 
-	if(data.scrolling){
-		if(data.width>1)
-			this.$hCanvas = $('<div class="canvas">').css('width',data.width*100+'%').appendTo(this.$);
-		if(data.height>1)
-			this.$vCanvas = $('<div class="canvas vert">').appendTo(this.$);
-	}
+		if(this.data.class) this.$.addClass(this.data.class);
+		if(this.data.fullWindow) this.data.fullWidth = this.data.fullHeight = true;
+		if(this.data.fullHeight) this.$.addClass('full-height');
 
-	function getAttr(o){
+		if(this.data.scrolling){
+			if(this.data.width>1)
+				this.$hCanvas = $('<div class="canvas">').css('width',this.data.width*100+'%').appendTo(this.$);
+			if(this.data.height>1)
+				this.$vCanvas = $('<div class="canvas vert">').appendTo(this.$);
+		}
+
+		var self = this;
+		this.addLoadImage = function(){
+			this._imgNum++;
+		};
+
+		this.imageLoaded = function(){
+			if(!--self._imgNum) self.loaded();
+			if(self._oImgNum) {
+				var p = Math.round((self._oImgNum-self._imgNum)/self._oImgNum*5)*20;
+				$(document.body).addClass('loaded-'+p);
+			}
+		};
+
+	},
+
+	load: function(){
+		if(this.inited) return;
+		$(document.body).removeClass('done-loading');
+		this.inited = true;
+		this.$[0].scrollLeft = 0;
+		this.resize();
+		for(var i=0;i<this.data.objects.length;i++)
+			this.addThing(this.data.objects[i], true);
+
+		var self = this;
+		requestAnimationFrame(function(){
+			if(self.data.oninit) self.data.oninit(self);
+			if(!self._imgNum) self.loaded();
+			self._oImgNum = self._imgNum;
+		});
+	},
+
+	loaded: function(){
+		if(this.data.scrollLeft) this.camera.setPosition([(this.data.scrollLeft||0)*10,0,0]);
+		this.$.addClass('loaded');
+		this.show();
+	},
+
+	getAttr: function(o){
 		o=o||{};
 		o.dims = o.dims||[1,1];
 		o.pos = o.pos&&o.pos.length&&[o.pos[0]||0,o.pos[1]||0,o.pos[2]||0]||[0,0,0];
 		o.rot = o.rot||[0,0,0];
-		return o;	
-	};
-
-	function init(){
-		if(inited) return;
-		$(document.body).removeClass('done-loading');
-		inited = true;
-		me.$[0].scrollLeft = 0;
-		resize();
-		for(var i=0;i<data.objects.length;i++)
-			me.addThing(data.objects[i], true);
-		requestAnimationFrame(function(){
-			if(data.oninit) data.oninit(me);
-			if(!imgNum) loaded();
-			oImgNum = imgNum;
-		});
-	};
-
-	function loaded(){
-		if(data.scrollLeft) me.camera.setPosition([(data.scrollLeft||0)*10,0,0]);
-		me.$.addClass('loaded');
-		me.show();
-	};
+		return o;
+	},
 
 	// Show/hide objects that have the .onlyShowInside attr
-	function updateViewable(){
-		var m = me.margin
-			, scr = [me.$[0].scrollLeft,me.$[0].scrollTop]
-			, fullHeight = me.data.fullHeight&&innerHeight||me.height
+	updateViewable: function(){
+		var m = this.margin
+			, scr = [this.$[0].scrollLeft,this.$[0].scrollTop]
+			, fullHeight = this.data.fullHeight&&innerHeight||this.height
 			, view = [
-				me.getCooFromPx(m[0]+scr[0],m[1]+scr[1]),
-				me.getCooFromPx(m[0]+scr[0]+me.width,m[1]+scr[1]+fullHeight)
+				this.getCooFromPx(m[0]+scr[0],m[1]+scr[1]),
+				this.getCooFromPx(m[0]+scr[0]+this.width,m[1]+scr[1]+fullHeight)
 			]
 			, q = {l: view[0][0], t: -view[0][1], r: view[1][0], b: -view[1][1]}
 			;
 
-		for(var i in me.objects)
-			if(me.objects[i].attr.showOnlyInView) {
-				var area = me.objects[i].attr.showOnlyInView
+		for(var i in this.objects)
+			if(this.objects[i].attr.showOnlyInView) {
+				var area = this.objects[i].attr.showOnlyInView
 					, qo = {l: area[0][0], b: -area[0][1], r: area[1][0], t: -area[1][1] }
-					, intersects = me.objects[i].matrix.intersects(qo,q)
+					, intersects = this.objects[i].matrix.intersects(qo,q)
 					;
-				if(me.objects[i].notInView == intersects)
-					me.objects[i].setNotInView(!intersects);
+				if(this.objects[i].notInView == intersects)
+					this.objects[i].setNotInView(!intersects);
 			}
-	};
+	},
 
-	function resize(){
-		clearTimeout(rto);
-		rto = setTimeout(postResize,20);
-		me.$.addClass('resizing');
-		if(!presx) presx = me.$[0].scrollLeft/me.$[0].scrollWidth;
+	resize: function(){
+		clearTimeout(this._rto);
 
-		var size = [innerWidth, innerWidth / format];
-		if(size[1]>innerHeight) size = [innerHeight * format, innerHeight];
+		var self = this;
+		this._rto = setTimeout(function(){
+			self.postResize();
+		},20);
+		this.$.addClass('resizing');
+		if(!this._presx) this._presx = this.$[0].scrollLeft/this.$[0].scrollWidth;
+
+		var size = [innerWidth, innerWidth / this._format];
+		if(size[1]>innerHeight) size = [innerHeight * this._format, innerHeight];
 
 		var css = {};
 
-		if(!data.fullWidth) css['margin-left'] = (me.margin[0]=Math.round((innerWidth-size[0])/2))+'px';
-		if(!data.fullHeight) css['margin-top'] = (me.margin[1]=Math.round((innerHeight-size[1])/2))+'px';
+		if(!this.data.fullWidth) css['margin-left'] = (this.margin[0]=Math.round((innerWidth-size[0])/2))+'px';
+		if(!this.data.fullHeight) css['margin-top'] = (this.margin[1]=Math.round((innerHeight-size[1])/2))+'px';
 
-		if(data.fixedSize && data.res)
-			me.$.css(c3.transform,'scale('+(me.scale=size[0]/res[0])+')');
+		if(this.data.fixedSize && this.data.res)
+			this.$.css(c3.transform,'scale('+(this.scale=size[0]/res[0])+')');
 		else {
-			css.width = (me.width = Math.round(data.fullWidth?innerWidth:size[0]))+'px';
-			css.height = (me.height = Math.round(size[1]))+'px';
-			var per =  2*Math.round(Math.sqrt(Math.pow(me.width/2,2)+Math.pow(me.height/2,2)));
-			css[c3.perspective] = (me.perspective=data.fixedPerspective||Math.max(data.minPerspective||0,per))+'px';
-			if(data.perspectiveOrigin) css[c3.perspectiveOrigin] = [
-					Math.round(data.perspectiveOrigin[0]*me.width),
-					Math.round(data.perspectiveOrigin[1]*me.height)
+			css.width = (this.width = Math.round(this.data.fullWidth?innerWidth:size[0]))+'px';
+			css.height = (this.height = Math.round(size[1]))+'px';
+			var per =	2*Math.round(Math.sqrt(Math.pow(this.width/2,2)+Math.pow(this.height/2,2)));
+			css[c3.perspective] = (this.perspective=this.data.fixedPerspective||Math.max(this.data.minPerspective||0,per))+'px';
+			if(this.data.perspectiveOrigin) css[c3.perspectiveOrigin] = [
+					Math.round(this.data.perspectiveOrigin[0]*this.width),
+					Math.round(this.data.perspectiveOrigin[1]*this.height)
 				].join('px ')+'px';
 		}
 
-		if(me.$vCanvas) me.$vCanvas.css('height',me.height*data.height+'px');
+		if(this.$vCanvas) this.$vCanvas.css('height',this.height*this.data.height+'px');
 
-		me.$.css(css).trigger('scene-resize');
-	};
+		this.$.css(css).trigger('scene-resize');
+	},
 
-	function postResize(){
-		me.$.removeClass('resizing')
-		if(presx) me.$[0].scrollLeft = me.camera.position[2]?0:Math.round(presx*me.$[0].scrollWidth);
-		presx = 0;
-	};
+	postResize: function(){
+		this.$.removeClass('resizing')
+		if(this._presx) this.$[0].scrollLeft = this.camera.position[2]?0:Math.round(this._presx*this.$[0].scrollWidth);
+		this._presx = 0;
+	},
 
-	this.addLoadImage = function(){
-		imgNum++;
-	};
+	getThing: function(n){
+		for(var x in this.objects)
+			if(this.objects[x].name==n) return this.objects[x];
+	},
 
-	this.imageLoaded = function(){
-		if(!--imgNum) loaded();
-		if(oImgNum) {
-			var p = Math.round((oImgNum-imgNum)/oImgNum*5)*20;
-			$(document.body).addClass('loaded-'+p);
-		}
-	};
+	getThings: function(n){
+		return this.objects.filter(function(o) { return o.name == n });
+	},
 
-	this.getThing = function(n){
-		for(var x in me.objects)
-			if(me.objects[x].name==n) return me.objects[x];
-	};
-
-	this.getThings = function(n){
-	  return me.objects.filter(function(o) { return o.name == n });
-	};
-
-	this.addThing = function(o, noAdd) {
+	addThing: function(o, noAdd) {
 		o.o=o.o||{};
 		if((o.o.noIE&&$.browser.ie) ||
 			(o.o.noWebkit&&$.browser.webkit)) return null;
 		var type,name;
 		for(var x in o){type=x,name=o[x];break;}
-		if(data.prototypes&&/^\$/.test(name)) {
+		if(this.data.prototypes&&/^\$/.test(name)) {
 			name=name.substr(1);
-			o.o=$.extend(o.o,data.prototypes[name],true);
+			o.o=$.extend(o.o,this.data.prototypes[name],true);
 			name=name.toLowerCase();
 		}
 		if(o.o.name) name = o.o.name;
-		if(o.o.img) imgNum++;
+		if(o.o.img) this._imgNum++;
 		var cons = Decor.Things[type];
 		if(!cons) return console.error('Object type '+type+' not found');
 
-		var t = new cons(me,name,o.o=getAttr(o.o));
+		var t = new cons(this,name,o.o=this.getAttr(o.o));
 		t.name = name;
 		t.attr = o.o;
 
-		if(!noAdd) data.objects.push(o);
+		if(!noAdd) this.data.objects.push(o);
 
 		this.sortThing(t);
 		return t;
-	};
+	},
 
-	this.sortThing = function(thing, autoPlace) {
-		var index = me.objects.indexOf(thing);
-		if(index>=0) me.objects.splice(index,1);
+	sortThing: function(thing, autoPlace) {
+		var index = this.objects.indexOf(thing);
+		if(index>=0) this.objects.splice(index,1);
 
-		var newidx = me.objects.length;
-		for(var i in me.objects)
-			if((thing.attr.forceZOrder||thing.attr.pos[2])<(me.objects[i].attr.forceZOrder||me.objects[i].attr.pos[2])) {
+		var newidx = this.objects.length;
+		for(var i in this.objects)
+			if((thing.attr.forceZOrder||thing.attr.pos[2])<(this.objects[i].attr.forceZOrder||this.objects[i].attr.pos[2])) {
 				newidx = i;
 				break;
 			}
 
-		me.objects.splice(newidx,0,thing);
+		this.objects.splice(newidx,0,thing);
 
 		if(autoPlace && ((index>=0 && newidx != index) || index<0))
-			me.placeThing(thing);
+			this.placeThing(thing);
 
 		return newidx;
-	};
+	},
 
-	this.placeThing = function(thing) {
+	placeThing: function(thing) {
 		if(!thing.$cnt) return console.warn('Trying to place thing without container');
+
+		var self = this;
 		requestAnimationFrame(function(){
-			var index = me.objects.indexOf(thing);
+			var index = self.objects.indexOf(thing);
 			if(index<0) return console.warn('Trying to place object not in scene');
-			for(var i=index+1;i<me.objects.length;i++)
-				if(me.objects[i].$cnt && me.objects[i].$cnt.parent()[0] == me.$[0]) {
-					thing.$cnt.insertBefore(me.objects[i].$cnt);
+			for(var i=index+1;i<self.objects.length;i++)
+				if(self.objects[i].$cnt && self.objects[i].$cnt.parent()[0] == self.$[0]) {
+					thing.$cnt.insertBefore(self.objects[i].$cnt);
 					break;
 				}
 
-			if(thing.$cnt.parent()[0] != me.$[0])
-				thing.$cnt.appendTo(me.$);
+			if(thing.$cnt.parent()[0] != self.$[0])
+				thing.$cnt.appendTo(self.$);
 
 			thing.placed = true;
 		});
-	};
+	},
 
-	this.removeThing = function(thing) {
-		var idx = me.objects.indexOf(thing);
+	removeThing: function(thing) {
+		var idx = this.objects.indexOf(thing);
 		if(idx>=0) {
-			me.objects.splice(idx,1);
+			this.objects.splice(idx,1);
 			if(thing.remove) thing.remove();
 		}
-	};
+	},
 
-	this.getCooFromPx = function(x,y) {
-		var perc = [(x-me.margin[0])/me.width,(y-me.margin[1])/me.height];
-		return [perc[0]+me.camera.position[0],1-perc[1]+me.camera.position[1],me.camera.position[2]];
-	};
+	getCooFromPx: function(x,y) {
+		var perc = [(x-this.margin[0])/this.width,(y-this.margin[1])/this.height];
+		return [perc[0]+this.camera.position[0],1-perc[1]+this.camera.position[1],this.camera.position[2]];
+	},
 
-	this.updateViewable = function(){
-		if(!data.checkInsideView) return;
-		cancelAnimationFrame(checkFr);
-		checkFr = requestAnimationFrame(updateViewable);
-	};
+	updateViewable: function(){
+		if(!this.data.checkInsideView) return;
+		cancelAnimationFrame(this._checkFr);
+		var self = this;
+		this._checkFr = requestAnimationFrame(function(){
+			self.updateViewable()
+		});
+	},
 
-	this.show = function(){
-		if(me.shown) return;
-		if(!inited) return init();
-		else resize();
+	show: function(){
+		if(this.shown) return;
+		if(!this.inited) return this.load();
+		else this.resize();
+
 		if(Decor.currentScene) Decor.currentScene.hide();
 		Decor.currentScene = this;
 		localStorage.setItem('currentScene',name);
-		me.$.show().addClass('placed');
-		me.shown = true;
-		me.active = true;
-		addEventListener('resize',resize);
-		if(data.audio) Decor.Audio.play(data.audio.src,data.audio);
-		onbeforeunload = function(){me.delete()};
-		if(data.checkInsideView) me.$[0].addEventListener('scroll',me.updateViewable);
+
+		this.$.show().addClass('placed');
+		this.shown = true;
+		this.active = true;
+
+		var self = this;
+		addEventListener('resize',
+			this._resize = function(){
+				self.resize();
+			}
+		);
+
+		if(this.data.checkInsideView) this.$[0].addEventListener('scroll',
+			this._updateViewable = function(){
+				self.updateViewable()
+			}
+		);
+
+		onbeforeunload = function(){self.delete()};
+
+		if(this.data.audio) Decor.Audio.play(this.data.audio.src,this.data.audio);
+
 		setTimeout(function(){
-			me.$.addClass('shown');
+			self.$.addClass('shown');
 			$(document.body)
 				.addClass('done-loading scene-shown')
 				.removeClass('loaded-'+[0,20,40,60,80,100].join(' loaded-'));
-			me.$.trigger('scene-show',name);
-			if(data.onshow) data.onshow(me);
+			self.$.trigger('scene-show',self.name);
+			if(self.data.onshow) self.data.onshow(self);
 		});
-	};
+	},
 
-	this.hide = function(cb,dur){
-		if(!me.shown) return cb&&cb();
-		me.shown = false;
-		me.active = false;
-		me.$[0].removeEventListener('scroll',me.updateViewable);
-		me.$.removeClass('shown').addClass('hiding');
+	hide: function(cb,dur){
+		if(!this.shown) return cb&&cb();
+		this.shown = false;
+		this.active = false;
+
+		this.$[0].removeEventListener('scroll',this._updateViewable);
+		removeEventListener('resize',this._resize);
+
+		this.$.removeClass('shown').addClass('hiding');
 		$(document.body).removeClass('scene-shown');
-		removeEventListener('resize',resize);
-		if(data.audio) Decor.Audio.stop(data.audio.src);
-		setTimeout(function(){
-			me.$.removeClass('placed hiding').hide();
-			$(window).add(me.$).trigger('scene-hide',name);
+
+		if(this.data.audio) Decor.Audio.stop(this.data.audio.src);
+
+		setTimeout(function(self){
+			self.$.removeClass('placed hiding').hide();
+			$(window).add(self.$).trigger('scene-hide',self.name);
 			if(cb) cb();
-		},data.hideDuration||0);
-	};
+		},data.hideDuration||0,this);
+	},
 
-	function del(cb){
-		for(var x in me.objects)
-			if(me.objects[x].remove)
-				me.objects[x].remove();
-		me.$.remove();
-		delete me.$;
-		me.deleted = true;
-		if(cb)cb();
-	};
+	delete: function(cb){
+		var self = this;
+		function del(cb){
+			for(var x in self.objects)
+				if(self.objects[x].remove)
+					self.objects[x].remove();
+			self.$.remove();
+			delete self.$;
+			self.deleted = true;
+			if(cb)cb();
+		};
 
-	this.delete = function(cb){
-		if(!me.shown) del(cb);
-		else me.hide(function(){del(cb)});
-	};
+		if(!self.shown) del(cb);
+		else self.hide(function(){del(cb)});
+	}
 
 };
 
 Decor.Camera = function(scene){
-	var me = this
-		, oY = scene.data.height-1
-		, limit = scene.data.limitCamera
-		, startPos = scene.data.cameraPosition
-		, ppos = [0,0,0]+''
-		, aniTo = null
-		, r = [0,0,0]
-		;
+	this._oY = scene.data.height-1;
+	this._limit = scene.data.limitCamera;
+	this._aniTo = null;
+	this._ppos = [0,0,0]+'';
+	this._startPos = scene.data.cameraPosition;
 
-	this.offset = [0,oY,0];
+	var r = [0,0,0];
+
+	this.scene = scene;
+	this.offset = [0,this._oY,0];
 	this.position = [0,0,0];
 
-	function insideView(cb){
+	this.init();
+
+};
+
+Decor.Camera.prototype = {
+	init: function(){
+		if(this._startPos) setTimeout(function(self){
+			if(self._startPos.length==2) self._startPos.push(0);
+			self.setPosition(self._startPos);
+		},0,this);
+	},
+
+	panTo: function(coo,duration,fn,reset) {
+		if(!(coo instanceof Array)) return;
+		clearTimeout(this._aniTo);
+		if(duration) {
+			var css = {};
+			css[c3.transitionTF] = fn||'ease-in-out';
+			css[c3.transitionD] = (duration||0)/1000+'s';
+			this.insideView(function(){
+				this.$cnt.css(css);
+			});
+
+			var self = this;
+			this._aniTo = setTimeout(function(){
+				self.resetAnimation();
+			},duration+50);
+		}
+		else this.resetAnimation();
+		this.setPosition(coo,reset);
+	},
+
+	setPosition: function(c,reset) {
+		var cp = c+'';
+		if(this._ppos==cp) return;
+		this._ppos=cp;
+		this.position[0] = !this._limit?c[0]:Math.min(this.scene.data.width,Math.max(-1,c[0]));
+		this.position[1] = !this._limit?c[1]:Math.min(this._oY,Math.max(0,c[1]));
+		this.position[2] = c[2];
+		this.scene.updateViewable();
+
+		var self = this;
+		requestAnimationFrame(function(){
+			self.insideView(function(){
+				this.place(reset)
+			});
+		});
+	},
+
+	reset: function(dur){
+		this.panTo([0,0,0],dur,null,true);
+	},
+
+	resetZ: function(dur){
+		this.panTo([this.position[0],this.position[1],0],dur,null,true);
+	},
+
+	resetAnimation: function(){
+		var css = {};
+		css[c3.transitionTF] = '';
+		css[c3.transitionD] = '';
+		this.insideView(function(){
+			this.$cnt.css(css);
+		});
+	},
+
+	insideView: function(cb){
 		if(!cb instanceof Function) return;
 		var sq = {
-			l: me.position[0]-1,
-			r: me.position[0]+2,
-			t: me.position[1]-.5,
-			b: me.position[1]+1
+			l: this.position[0]-1,
+			r: this.position[0]+2,
+			t: this.position[1]-.5,
+			b: this.position[1]+1
 		};
-		for(var x in scene.objects) {
-			var o = scene.objects[x];
+		for(var x in this.scene.objects) {
+			var o = this.scene.objects[x];
 			if(!o.matrix) continue;
 			if(!o.attr.main) {
 				//if(scene.data.renderAll||o.matrix.intersects(sq)) {
@@ -522,114 +747,73 @@ Decor.Camera = function(scene){
 				//else o.setNotInView(true);
 			}
 		}
-	};
-
-	function resetAnimation(){
-		var css = {};
-		css[c3.transitionTF] = '';
-		css[c3.transitionD] = '';
-		insideView(function(){
-			this.$cnt.css(css);
-		});
-	};
-
-	this.panTo = function(coo,duration,fn,reset) {
-		if(!(coo instanceof Array)) return;
-		clearTimeout(aniTo);
-		if(duration) {
-			var css = {};
-			css[c3.transitionTF] = fn||'ease-in-out';
-			css[c3.transitionD] = (duration||0)/1000+'s';
-			insideView(function(){
-				this.$cnt.css(css);
-			});
-			aniTo = setTimeout(resetAnimation,duration+50);
-		}
-		else resetAnimation();
-		me.setPosition(coo,reset);
-	};
-
-	this.setPosition = function(c,reset) {
-		var cp = c+'';
-		if(ppos==cp) return;
-		ppos=cp;
-		me.position[0] = !limit?c[0]:Math.min(scene.data.width,Math.max(-1,c[0]));
-		me.position[1] = !limit?c[1]:Math.min(oY,Math.max(0,c[1]));
-		me.position[2] = c[2];
-		scene.updateViewable();
-		requestAnimationFrame(function(){
-			insideView(function(){
-				this.place(reset)
-			});
-		});
-	};
-
-	this.reset = function(dur){
-		me.panTo([0,0,0],dur,null,true);
-	};
-	this.resetZ = function(dur){
-		me.panTo([me.position[0],me.position[1],0],dur,null,true);
-	};
-
-	if(startPos) setTimeout(function(){
-		if(startPos.length==2) startPos.push(0);
-		me.setPosition(startPos);
-	});
-
+	}
 };
 
 Decor.Object3D = function(scene,$el,o) {
-	var me = this;
+	this.scene = scene;
+	this.$el = $el;
+	this._o = o;
 
 	this.matrix = new Decor.Mat3D(this,o.pos,o.rot,o.scale);
 	this.notInView = false;
 
-	this.reset = function(){
-		me.matrix.translate(null,true);
-		return me;
-	};
+	this._init();
+};
 
-	this.setPosition = function(coo) {
-		o.pos[0]=coo[0];
-		o.pos[1]=coo[1];
-		if(o.pos[2]!=coo[2]) {
-			o.pos[2]=coo[2];
-			scene.sortThing(me,me.$cnt&&me.$cnt.parent()[0]==scene.$[0]);
+Decor.Object3D.prototype = {
+	_init: function(){
+		this.place();
+		this.scene.$.on('scene-resize',this.place);
+	},
+
+	reset: function(){
+		this.matrix.translate(null,true);
+		return this;
+	},
+
+	setPosition: function(coo) {
+		this._o.pos[0]=coo[0];
+		this._o.pos[1]=coo[1];
+		if(this._o.pos[2]!=coo[2]) {
+			this._o.pos[2]=coo[2];
+			this.scene.sortThing(this,this.$cnt&&this.$cnt.parent()[0]==this.scene.$[0]);
 		}
-		me.reset().place();
-	};
+		this.reset().place();
+	},
 
-	this.translate = function(coo,res) {
-		me.matrix.translate(coo);
-		me.place();
-		return me;
-	};
+	translate: function(coo,res) {
+		this.matrix.translate(coo);
+		this.place();
+		return this;
+	},
 
-	this.setNotInView = function(b){
-		if(me.notInView==b) return;
-		if(me.notInView=b) $el.hide();
-		else $el.show();
-	};
+	setNotInView: function(b){
+		if(this.notInView==b) return;
+		if(this.notInView=b) this.$el.hide();
+		else this.$el.show();
+	},
 
-	this.place = function(noscr){
-		$el[0].style[c3d.transform] = me.matrix.getCSS(noscr);
-	};
+	place: function(noscr){
+		if(!this.$el) return;
+		this.$el[0].style[c3d.transform] = this.matrix.getCSS(noscr);
+	},
 
-	this.focus = function(offset){
+	focus: function(offset){
 		var evt = 'zoom-out';
-		if($el.toggleClass('open').hasClass('open')) {
+		if(this.$el.toggleClass('open').hasClass('open')) {
 			evt = 'zoom-in';
-			scene.$.find('.open').not($el).removeClass('open');
+			this.scene.$.find('.open').not(this.$el).removeClass('open');
 
-			var pos = me.matrix.getPosition()
-				, w = me.$.width()
-				, h = me.$.height()
+			var pos = this.matrix.getPosition()
+				, w = this.$.width()
+				, h = this.$.height()
 				;
 
-			if(h>scene.height) pos[2]-=scene.height-h*1.05;
-			else if(w>scene.width) pos[2]-=(scene.width-w)/2;
+			if(h>this.scene.height) pos[2]-=this.scene.height-h*1.05;
+			else if(w>this.scene.width) pos[2]-=(this.scene.width-w)/2;
 
-			pos[0]-=(1-(o.width||0))/2;
+			pos[0]-=(1-(this._o.width||0))/2;
 			pos[1]*=-1;
 			pos[2]*=-1;
 
@@ -639,42 +823,41 @@ Decor.Object3D = function(scene,$el,o) {
 				if(offset[2]) pos[2]+=offset[2];
 			}
 
-			scene.currentFocus = me;
-			scene.camera.panTo(pos,scene.data.focusDuration||0);
+			this.scene.currentFocus = this;
+			this.scene.camera.panTo(pos,this.scene.data.focusDuration||0);
 		}
 		else {
-			scene.currentFocus = null;
-			scene.camera.reset(scene.data.focusDuration||0);
+			this.scene.currentFocus = null;
+			this.scene.camera.reset(this.scene.data.focusDuration||0);
 		}
 
-		scene.$.trigger(evt,me.name);
-	};
-
-	this.place();
-	scene.$.on('scene-resize',me.place);
+		this.scene.$.trigger(evt,this.name);
+	}
 
 };
 
 Decor.Mat3D = function(thing,xyz,rot,scale) {
-	xyz = xyz||[0,0,0];
-	rot = rot||[0,0,0];
-	scale = getScale(scale);
+	this.thing = thing;
+	this.scene = thing.scene;
 
-	var me = this
-		, scene = thing.scene
-		, rel = [0,0,0]
-		;
+	this._xyz = xyz||[0,0,0];
+	this._rot = rot||[0,0,0];
+	this._scale = this.getScale(scale);
+	this._rel = [0,0,0];
+};
 
-	function getScale(v){
+Decor.Mat3D.prototype = {
+
+	getScale: function(v){
 		v=v?v.length?v:[v||1,v||1,1]:[1,1,1];
 		if(v.length==2) v.push(1);
 		return v;
-	};
+	},
 
-	this.getQuad = function(c){
+	getQuad: function(c){
 		c=c||[0,0,0];
-		var p = me.getPosition()
-			, size = [thing.rwidth,thing.rheight]
+		var p = this.getPosition()
+			, size = [this.thing.rwidth,this.thing.rheight]
 			;
 		return {
 			l: p[0]+c[0],
@@ -682,244 +865,166 @@ Decor.Mat3D = function(thing,xyz,rot,scale) {
 			t: -(p[1]-c[1]),
 			b: -((p[1]-c[1])-size[1])
 		};
-	};
+	},
 
-	this.intersects = function(cq,oq) {
-		var q = oq&&'l' in oq&&oq||me.getQuad();
+	intersects: function(cq,oq) {
+		var q = oq&&'l' in oq&&oq||this.getQuad();
 		return !(cq.l > q.r || 
 			cq.r < q.l || 
 			cq.t > q.b ||
 			cq.b < q.t);
-	};
+	},
 
-	this.getCSS = function(noscr){
-		var co = scene.camera.offset
-			, cp = scene.camera.position
-			, tx = thing.attr.relative?0:cp[0]
-			, ty = thing.attr.relative?0:co[1]-(scene.data.height-1)-cp[1]
-			, container = thing.container||scene
-			, fact = [container.width,container.height]
-			, att = []
-			, sd = scene.data.depthFactor||1
-			;
-
-		if(!noscr) tx-=scene.$[0].scrollLeft/scene.width;
-
-		var coo = [
-			Math.round(fact[0]*(xyz[0]+rel[0]+co[0]-tx)),
-			-Math.round(fact[1]*(xyz[1]+rel[1]+ty)),
-			sd*(xyz[2]+rel[2]+cp[2])+co[2]
-		];
-
-		if(scene.data.fullHeight)
-			coo[1]+=Math.round(Math.min(0,innerWidth/scene.data.aspectRatio-innerHeight));
-
-		att.push('translate3d('+coo.join('px,')+'px)');
-		if(rot[0]) att.push('rotateX('+rot[0]+'deg)');
-		if(rot[1]) att.push('rotateY('+rot[1]+'deg)');
-		if(rot[2]) att.push('rotateZ('+rot[2]+'deg)');
-		if(scale[0]!=1||scale[1]!=1||scale[2]!=1)
-			att.push('scale3d('+scale.join(',')+')');
-
-		return att.join(' ');
-	};
-
-	this.getPosition = function(){
-		return [xyz[0]+rel[0],xyz[1]+rel[1],xyz[2]+rel[2]];
-	};
-
-	this.getElementPosition = function(){
-		var p = me.getPosition();
-		var rels = getComputedStyle(thing.$[0])[c3.transform];
-		if(/^matrix\(/.test(rels)) {
-			var pts = rels.substr(0,rels.length-1).split(',')
-			p[0]+=parseFloat(pts[4])/scene.width;
-			p[1]+=parseFloat(pts[5])/scene.height;
-		}
-		return p;
-	};
-
-	this.getX = function(){return xyz[0]+rel[0]};
-	this.getY = function(){return (xyz[1]+rel[1])};
-	this.getZ = function(){return xyz[2]+rel[2]};
-
-	this.translate = function(coo,reset) {
-		if(reset) rel = [0,0,0];
+	translate: function(coo,reset) {
+		if(reset) this._rel = [0,0,0];
 		if(coo) {
-			rel[0]+=coo[0];
-			rel[1]+=coo[1];
-			rel[2]+=coo[2];
+			this._rel[0]+=coo[0];
+			this._rel[1]+=coo[1];
+			this._rel[2]+=coo[2];
 		}
 		return me;
-	};
+	},
 
-	Object.defineProperty(this, 'xyz', {
-		get: function(){ return xyz },
-		set: function(v){ xyz = v }
-	});
-	Object.defineProperty(this, 'rot', {
-		get: function(){ return rot },
-		set: function(v){ rot = v }
-	});
-	Object.defineProperty(this, 'scale', {
-		get: function(){ return scale },
-		set: function(v){ scale = getScale(v) }
-	});
+	getCSS: function(noscr){
+		var co = this.scene.camera.offset
+			, cp = this.scene.camera.position
+			, tx = this.thing.attr.relative?0:cp[0]
+			, ty = this.thing.attr.relative?0:co[1]-(this.scene.data.height-1)-cp[1]
+			, container = this.thing.container||this.scene
+			, fact = [container.width,container.height]
+			, att = []
+			, sd = this.scene.data.depthFactor||1
+			;
 
-};
+		if(!noscr) tx-=this.scene.$[0].scrollLeft/this.scene.width;
 
-Decor.Frame = new function(){
-	var q = []
-		, started = false
-		, raf = null
-		, fi = null
-		;
+		var coo = [
+			Math.round(fact[0]*(this._xyz[0]+this._rel[0]+co[0]-tx)),
+			-Math.round(fact[1]*(this._xyz[1]+this._rel[1]+ty)),
+			sd*(this._xyz[2]+this._rel[2]+cp[2])+co[2]
+		];
 
-	function start(){
-		if(started) return;
-		started = true;
-		raf = requestAnimationFrame(cycle);
-	};
+		if(this.scene.data.fullHeight)
+			coo[1]+=Math.round(Math.min(0,innerWidth/this.scene.data.aspectRatio-innerHeight));
 
-	function stop(){
-		if(!started) return;
-		started = false;
-		cancelAnimationFrame(raf);
-	};
+		att.push('translate3d('+coo.join('px,')+'px)');
 
-	function cycle(t){
-		if(!q.length) return stop();
-		var num = q.length;
-		while(num--) q.shift()(t);
-		raf = requestAnimationFrame(cycle);
-	};
+		if(this._rot[0]) att.push('rotateX('+this._rot[0]+'deg)');
+		if(this._rot[1]) att.push('rotateY('+this._rot[1]+'deg)');
+		if(this._rot[2]) att.push('rotateZ('+this._rot[2]+'deg)');
 
-	this.request = function(cb){
-		if(q.push(cb)==1) start()
-	};
+		if(this._scale[0]!=1||this._scale[1]!=1||this._scale[2]!=1)
+			att.push('scale3d('+this._scale.join(',')+')');
 
-	this.cancel = function(cb){
-		for(var i=0;i<q.length;i++)
-			if(cb==q[i]) q.shift();
-		if(!q.length) stop();
-	};
+		return att.join(' ');
+	},
 
-};
+	getPosition: function(){
+		return [this._xyz[0]+this._rel[0],this._xyz[1]+this._rel[1],this._xyz[2]+this._rel[2]];
+	},
 
-Decor.Audio = new function(){
-	var f = [];
-	
-	function Fragment(src,o){o=o||{};
-		this.audio = new Audio;
-		this.audio.volume	= o.volume||1;
-		this.audio.src = this.src = src;
-		this.play();
-	};
-
-	Fragment.prototype = {
-		playing: false,
-		play: function(){
-			if(!this.audio||this.playing) return;
-			this.playing = true;
-			this.audio.load();
-			this.audio.play();
-			this.audio.addEventListener('ended',this.stop);
-		},
-		stop: function(){
-			if(!this.playing) return;
-			this.playing = false;
-			this.audio.pause();
+	getElementPosition: function(){
+		var p = this.getPosition();
+		var rels = getComputedStyle(this.thing.$[0])[c3.transform];
+		if(/^matrix\(/.test(rels)) {
+			var pts = rels.substr(0,rels.length-1).split(',')
+			p[0]+=parseFloat(pts[4])/this.scene.width;
+			p[1]+=parseFloat(pts[5])/this.scene.height;
 		}
-	};
+		return p;
+	},
 
-	function getSrc(src){
-		if(($.browser.ie || $.browser.iOS || $.browser.safari) && /\.ogg$/.test(src))
-			src = src.replace(/\.ogg/,'.mp3');
-		return src;
-	};
+	getX: function(){return this._xyz[0]+this._rel[0]},
+	getY: function(){return this._xyz[1]+this._rel[1]},
+	getZ: function(){return this._xyz[2]+this._rel[2]},
 
-	function getIdle(src){
-		for(var x in f)
-			if(f[x].src==src && !f[x].playing)
-				return f[x];
-	};
+	get xyz(){ return this.xyz },
+	set xyz(v){ this._xyz = v },
 
-	this.play = function(src,o) {
-		src = getSrc(src);
-		var fr = getIdle(src);
-		if(fr) fr.play.call(fr);
-		else f.push(fr=new Fragment(src,o));
-		return fr.audio;
-	};
+	get rot(){ return this.rot },
+	set rot(v){ this._rot = v },
 
-	this.stop = function(src) {
-		src = getSrc(src);
-		for(var x in f) if(f[x].src==src) f[x].stop.call(f[x]);
-	};
+	get scale(){ return this.scale },
+	set scale(v){ this._scale = this.getScale(v) }
 
 };
+
 
 //Primitives
-Decor.Things.Thing = function(scene,name,o){
-	var me = this;
-
-	this.attr = o;
+Decor.Things.Thing = function(scene,name,attr){
+	this.name = name;
+	this.attr = attr;
 	this.scene = scene;
 
-	var $cnt = $('<thing class="thing">');
-	this.$cnt = $cnt;
+	this.$cnt = $('<thing class="thing">');
 
-	if(o.static) this.$ = $cnt;
-	else this.$ = $('<thing>').appendTo($cnt);
+	if(!this.init) console.warn('oei!',this,name,attr);
+	else this.init();
+};
 
-	this.$[0].thing = $cnt[0].thing = this;
+Decor.Things.Thing.prototype = Object.create(Decor.Object3D.prototype,{
+	init: { value: function(){
+		if(this.attr.static) this.$ = this.$cnt;
+		else this.$ = $('<thing>').appendTo(this.$cnt);
 
-	if(o.static) $cnt.addClass('static');
-	this.$.addClass(name+(o.class?' '+o.class:''));
-	this.$cnt.addClass(name+'-cnt');
+		this.$[0].thing = this.$cnt[0].thing = this;
 
-	if(o.clickable) $cnt.addClass('clickable');
+		if(this.attr.static) this.$cnt.addClass('static');
+		this.$.addClass(this.name+(this.attr.class?' '+this.attr.class:''));
+		this.$cnt.addClass(this.name+'-cnt');
 
-	if(o.textContent) this.$.text(o.textContent);
+		if(this.attr.clickable) this.$cnt.addClass('clickable');
 
-	this.setDims = function(dims){
-		if(dims&&dims.length) for(var x in dims) o.dims[x] = dims[x];
+		if(this.attr.textContent) this.$.text(this.attr.textContent);
 
-		var rat = o.isDepth?scene.height/1080:1;
-		var container = o.relativeSize&&me.container||scene;
+		Decor.Object3D.call(this,this.scene,this.$cnt,this.attr);
 
-		me.$.css({
-			width: (me.width=o.px&&o.px[0]||Math.round(o.dims[0]*container.width))+'px',
-			height: (me.height=o.px&&o.px[1]||Math.round((o.dims[1]/rat)*container.height))+'px'
+		var self = this;
+		this.scene.$.on('scene-resize',function(){
+			self.setDims();
 		});
 
-		me.rwidth = o.px?o.px[0]/scene.width:o.dims[0];
-		me.rheight = o.px?o.px[1]/scene.height:o.dims[1];
-	};
+		this.setDims();
 
-	this.show = function(){
-		if(!me.placed) scene.placeThing(me);
-		else $cnt.show();
-	};
-	this.hide = function(){$cnt.hide()};
-	this.remove = function(){
-		$cnt.remove();
-		me.placed = false;
-	};
+		if(!this.attr.noshow) this.show();
+	}},
 
-	Decor.Object3D.call(this,scene,$cnt,o);
+	setDims: { value : function(dims){
+		if(dims&&dims.length) for(var x in dims) o.dims[x] = dims[x];
 
-	scene.$.on('scene-resize',this.setDims);
+		var rat = this.attr.isDepth?this.scene.height/1080:1;
+		var container = this.attr.relativeSize&&this.container||this.scene;
 
-	this.setDims();
+		this.$.css({
+			width: (this.width=this.attr.px&&this.attr.px[0]||Math.round(this.attr.dims[0]*container.width))+'px',
+			height: (this.height=this.attr.px&&this.attr.px[1]||Math.round((this.attr.dims[1]/rat)*container.height))+'px'
+		});
 
-	if(!o.noshow) this.show();
-};
+		this.rwidth = this.attr.px?this.attr.px[0]/this.scene.width:this.attr.dims[0];
+		this.rheight = this.attr.px?this.attr.px[1]/this.scene.height:this.attr.dims[1];
+	}},
+
+	show: { value : function(){
+		if(!this.placed) this.scene.placeThing(this);
+		else this.$cnt.show();
+	}},
+
+	hide: { value : function(){
+		this.$cnt.hide();
+	}},
+
+	remove: { value : function(){
+		this.$cnt.remove();
+		this.placed = false;
+	}}
+
+});
 
 Decor.Things.Static = function(scene,name,o){ // :: Thing
 	o.static = true;
 	Decor.Things.Thing.call(this,scene,name,o);
 };
+Decor.Things.Static.prototype = Object.create(Decor.Things.Thing.prototype);
 
 Decor.Things.Container = function(scene,name,o){
 	Decor.Things.Thing.call(this,scene,name,o);
@@ -933,6 +1038,7 @@ Decor.Things.Container = function(scene,name,o){
 		this.children.push(t);
 	}
 };
+Decor.Things.Container.prototype = Object.create(Decor.Things.Thing.prototype);
 
 Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 	var me = this;
@@ -960,6 +1066,7 @@ Decor.Things.HTMLContain = function(scene,name,o){ // :: Static
 	}
 
 };
+Decor.Things.HTMLContain.prototype = Object.create(Decor.Things.Static.prototype);
 
 Decor.Things.ImageContain = function(scene,name,o) {
 	if(o.width) o.dims=[o.width,0];
@@ -1038,11 +1145,13 @@ Decor.Things.ImageContain = function(scene,name,o) {
 	if(!o.noshow) this.show();
 
 };
+Decor.Things.ImageContain.prototype = Object.create(Decor.Object3D.prototype);
 
 Decor.Things.Image = function(scene,name,a){ // :: ImageContain
 	a.static = true;
 	Decor.Things.ImageContain.call(this,scene,name,a);
 };
+Decor.Things.Image.prototype = Object.create(Decor.Things.ImageContain.prototype);
 
 Decor.Things.ImageLink = function(scene,name,a){ // :: ImageContain
 	a.tagName = 'a';
@@ -1051,6 +1160,7 @@ Decor.Things.ImageLink = function(scene,name,a){ // :: ImageContain
 	if(a.external) this.$cnt[0].target = '_blank';
 	if(a.title) this.$cnt[0].title = a.title;
 };
+Decor.Things.ImageLink.prototype = Object.create(Decor.Things.ImageContain.prototype);
 
 Decor.Things.ImageBG = function(scene,name,o){ // :: Static
 	var me = this;
@@ -1073,6 +1183,7 @@ Decor.Things.ImageBG = function(scene,name,o){ // :: Static
 
 	this.$.css('background-image','url('+o.img+')');
 };
+Decor.Things.ImageBG.prototype = Object.create(Decor.Things.Static.prototype);
 
 Decor.Things.ImageRep = function(scene,name,a){ // [:: Image]
 	scene.imageLoaded();
@@ -1135,6 +1246,7 @@ Decor.Things.Cube = function(scene,name,a) { // [:: Thing]
 	scene.$.on('scene-resize',resize);
 	setTimeout(resize);
 };
+Decor.Things.Cube.prototype = Object.create(Decor.Things.Thing.prototype);
 
 Decor.Things.Overlay = function(scene,name,o){
 	var me = this
